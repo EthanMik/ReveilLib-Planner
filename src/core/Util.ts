@@ -1,10 +1,23 @@
-import type { Coordinate } from "./Coordinate";
+import type { Coordinate } from "./Path";
 
 export interface Rectangle {
     x: number;
     y: number;
     w: number;
     h: number;
+}
+
+export const FIELD_REAL_DIMENSIONS: Rectangle = { x: -72, y: 72, w: 144, h: 144 };
+export const FIELD_IMG_DIMENSIONS: Rectangle = { x: 0, y: 0, w: 575, h: 575 };
+
+export function toInch(position: Coordinate, field: Rectangle, img: Rectangle): Coordinate {
+  const sx = img.w / field.w;
+  const sy = img.h / field.h;
+
+  const dx = field.x + (position.x - img.x) / sx;
+  const dy = field.y + (position.y - img.y) / sy;
+
+  return {x: dx, y: dy}
 }
 
 export function toPX(position: Coordinate, field: Rectangle, img: Rectangle): Coordinate {
