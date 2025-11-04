@@ -1,5 +1,5 @@
 import { describe, it, expect} from "vitest";
-import { toPX } from "./Util";
+import { toInch, toPX } from "./Util";
 
 describe("toPX", () => {
   it("Testing toPX", () => {
@@ -11,4 +11,14 @@ describe("toPX", () => {
     expect(out.x).toBeCloseTo(199.9, 1);
     expect(out.y).toBeCloseTo(59.2, 1);
   });
+
+  it("Testing toInch", () => {
+    const out = toInch(
+      { x: 63.88889, y: -311.45833},
+      { x: -72, y: 72, w: 144, h: 144 },
+      { x: 0, y: 0, w: 575, h: 575 }
+    )
+  }
+
+  )
 });

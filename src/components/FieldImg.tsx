@@ -1,12 +1,20 @@
-import fieldImg from "../assets/VURC_pushback.png";
-import { AddControl } from "../core/Path";
-import { FIELD_IMG_DIMENSIONS } from "../core/Util";
+import { useCallback, useState } from "react";
+import type { Segment } from "../core/Path";
 import Field from "./FieldWithMarkers";
 
-export function FieldImg() {
+export default function FieldContainer({ src, img }: { src: string; img: { x: number, y: number, w: number; h: number } }) {
+  const [segment, setSegment] = useState<Segment>({ controls: [] });
+
+  const handleChange = useCallback((next: Segment) => {
+    setSegment(next);
+  }, []);
+
   return (
-    <div className="translate-x-[13px]">
-      <Field src={fieldImg} width={FIELD_IMG_DIMENSIONS.w} height={FIELD_IMG_DIMENSIONS.h} onCursorMove={AddControl} />
-    </div>
+    <Field
+      src={src}
+      img={img}
+      segment={segment}
+      onChange={handleChange}
+    />
   );
 }

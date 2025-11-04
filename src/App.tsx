@@ -1,10 +1,12 @@
 import './App.css'
-import { FieldImg } from './components/FieldImg'
+import fieldimg from './assets/VURC_pushback.png'
+import FieldContainer from './components/FieldImg'
+import { FIELD_IMG_DIMENSIONS } from './core/Util'
 
 function App() {
   return (
     <div>
-        <FieldImg/>
+        <FieldContainer src={fieldimg} img={FIELD_IMG_DIMENSIONS}/>
     </div>
   )
 }

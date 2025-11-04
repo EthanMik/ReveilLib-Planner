@@ -1,29 +1,67 @@
-// Field.tsx
-import React, { useRef } from "react";
+import { useCallback, useRef, useState } from "react";
+import { addControlToSegment, Control, type Coordinate, type Segment } from "../core/Path";
+import { FIELD_REAL_DIMENSIONS, makeId, toInch, toPX, type Rectangle } from "../core/Util";
 
-type FieldImageProps = {
+type FieldProps = {
+  segment: Segment;
   src: string;
-  width?: number;
-  height?: number;
-  onCursorMove?: (x: number, y: number) => void;
+  img: Rectangle;
+  onChange?: (segment: Segment, cursorX: number, cursorY: number) => void;
 };
 
-export default function Field({ src, width, height, onCursorMove }: FieldImageProps) {
-  const imgRef = useRef<HTMLImageElement | null>(null);
+export default function Field({
+  src,
+  segment,
+  img,
+  onChange,
+}: FieldProps) {
 
-  const handlePointerMove: React.PointerEventHandler<HTMLImageElement> = (e) => {
-    if (!imgRef.current || !onCursorMove) return;
-    const rect = imgRef.current.getBoundingClientRect();
-    onCursorMove(e.clientX - rect.left, e.clientY - rect.top);
-  };
+  const svgRef = useRef<SVGSVGElement | null>(null); 
+
+const handleBackgroundPointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
+  if (evt.button !== 0) return;
+  const tag = evt.target instanceof Element ? evt.target.tagName.toLowerCase() : "";
+  if (tag === "circle") return;
+
+  const rect = (evt.currentTarget as SVGSVGElement).getBoundingClientRect();
+  const posPx: Coordinate = { x: evt.clientX - rect.left, y: evt.clientY - rect.top }
+
+  // Convert image px -> inches (use your util)
+  const posIn = toInch(posPx, FIELD_REAL_DIMENSIONS, img);
+
+  // Make control and updated segment
+  const control = new Control(posIn, 0);
+  const next: Segment = { ...segment, controls: [...segment.controls, control] };
+
+  onChange?.(next, posPx.x, posPx.y);
+  console.log("INCH " + posIn.x + ", " + posIn.y)
+  console.log("PX " + posPx.x + ", " + posPx.y)
+};
+
 
   return (
-    <img
-      ref={imgRef}
-      src={src}
-      width={width}
-      height={height}
-      onPointerMove={handlePointerMove}
-    />
+    <div
+      className="inline-block select-none"
+    >
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${img.w} ${img.h}`}
+        width={img.w}
+        height={img.h}
+        className="block"
+        onPointerDown={handleBackgroundPointerDown}
+      >
+        <image
+          href={src}
+          x={0}
+          y={0}
+          width={img.w}
+          height={img.h}
+          pointerEvents="none"
+          preserveAspectRatio="none"
+        />
+
+      </svg>
+    </div>
   );
 }
