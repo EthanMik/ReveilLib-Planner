@@ -26,7 +26,7 @@ const handleBackgroundPointerDown = (evt: React.PointerEvent<SVGSVGElement>) => 
   if (tag === "circle") return;
 
   const rect = (evt.currentTarget as SVGSVGElement).getBoundingClientRect();
-  const posPx: Coordinate = { x: evt.clientX - rect.left, y: -(evt.clientY - rect.top) }
+  const posPx: Coordinate = { x: evt.clientX - rect.left, y: (evt.clientY - rect.top) }
 
   // Convert image px -> inches (use your util)
   const posIn = toInch(posPx, FIELD_REAL_DIMENSIONS, img);
@@ -44,7 +44,7 @@ const handlePointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
   if (tag !== "circle") return;
 
   const rect = (evt.currentTarget as SVGSVGElement).getBoundingClientRect();
-  const posPx: Coordinate = { x: evt.clientX - rect.left, y: -(evt.clientY - rect.top) }
+  const posPx: Coordinate = { x: evt.clientX - rect.left, y: (evt.clientY - rect.top) }
 
   
 }
@@ -61,6 +61,7 @@ const handlePointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
         className="block"
         onPointerDown={handleBackgroundPointerDown}
       >
+
         <image
           href={src}
           x={0}
@@ -70,6 +71,22 @@ const handlePointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
           pointerEvents="none"
           preserveAspectRatio="none"
         />
+
+        {segment.controls.map((control, idx) => (
+          <g key={control.id}>
+            <circle 
+            cx={toPX(control.position, FIELD_REAL_DIMENSIONS, img).x}
+            cy={toPX(control.position, FIELD_REAL_DIMENSIONS, img).y}
+            r={10}
+            fill="rgba(59,130,246,0.25)"
+            stroke="rgb(59,130,246)"
+            strokeWidth={2}
+            />
+          </g>
+        
+
+        ))}
+
 
       </svg>
     </div>
