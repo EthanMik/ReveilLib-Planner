@@ -10,6 +10,10 @@ export interface Rectangle {
 export const FIELD_REAL_DIMENSIONS: Rectangle = { x: -72, y: 72, w: 144, h: 144 };
 export const FIELD_IMG_DIMENSIONS: Rectangle = { x: 0, y: 0, w: 575, h: 575 };
 
+export function addVector2(pos1: Coordinate, pos2: Coordinate) {
+    return { x: pos1.x + pos2.x, y: pos1.y + pos2.y};
+}
+
 export function toInch(position: Coordinate, field: Rectangle, img: Rectangle): Coordinate {
     img.y = -img.y
     const sx = field.w / img.w
