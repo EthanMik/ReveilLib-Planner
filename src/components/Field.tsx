@@ -19,7 +19,35 @@ export default function Field({
   const svgRef = useRef<SVGSVGElement | null>(null); 
   const [selectedId, setSelectedId] = useState<string>("");
   const [drag, setDrag] = useState<string | null>(null);
-  
+  const [ scale, setScale ] = useState<number>(0.5);
+
+  const moveControl = (evt: React.KeyboardEvent<HTMLDivElement>) => {
+    let xScale: number = 0;
+    let yScale: number = 0;
+
+    setScale(evt.shiftKey ? 1 : 0.25);
+
+    if (evt.key === "ArrowUp") {
+      yScale = -scale  
+    } else if (evt.key === "ArrowDown") {
+      yScale = scale;  
+    } else if (evt.key === "ArrowLeft") {
+      xScale = -scale
+    } else if (evt.key === "ArrowRight") {
+      xScale = scale
+    }
+    if (xScale === 0 && yScale === 0) return;
+
+    setSegment(prev => ({
+      ...prev,
+      controls: prev.controls.map(control =>
+          control.selected
+          ? { ...control, position: { ...control.position, x: control.position.x + xScale, y: control.position.y + yScale, }, }
+          : control
+      ),
+    }));
+
+  }
 
   const handleKeyDown = (evt: React.KeyboardEvent<HTMLDivElement>) => {
     if (evt.key === "Backspace" || evt.key === "Delete") {
@@ -30,6 +58,7 @@ export default function Field({
 
       setSegment(next);
     }
+    moveControl(evt);
   }
 
   const handlePointerMove = (evt: React.PointerEvent<SVGSVGElement>) => {

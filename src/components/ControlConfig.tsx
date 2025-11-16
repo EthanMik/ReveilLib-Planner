@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSegment } from "../hooks/useSegment";
 import { clamp } from "../core/Util";
 import flipHorizontal from "../assets/flip-horizontal.svg";
