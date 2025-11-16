@@ -14,6 +14,10 @@ export function addVector2(pos1: Coordinate, pos2: Coordinate) {
     return { x: pos1.x + pos2.x, y: pos1.y + pos2.y};
 }
 
+export function clamp(value: number, min: number, max: number) {
+    return Math.min(Math.max(value, min), max);
+}
+
 export function toInch(position: Coordinate, field: Rectangle, img: Rectangle): Coordinate {
     img.y = -img.y
     const sx = field.w / img.w

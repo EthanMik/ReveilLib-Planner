@@ -4,7 +4,7 @@ import { FIELD_REAL_DIMENSIONS, toInch, toPX, type Rectangle } from "../core/Uti
 import { useSegment } from "../hooks/useSegment";
 
 type FieldProps = {
-src: string;
+  src: string;
   img: Rectangle;
   radius: number;
 };
@@ -45,10 +45,21 @@ export default function Field({
         ) 
     } 
 
-    setSegment?.(next);
+    setSegment(next);
   }
 
   const endDrag = () => setDrag(null);
+
+  const selectSegment = (controlId: string) => {
+    setSelectedId(controlId)
+
+    setSegment({
+      ...segment, controls: segment.controls.map(c => ({
+        ...c, selected: c.id === controlId
+      })),
+
+    });
+  };
 
   const handlePointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
     if (evt.button !== 0) return;
@@ -65,15 +76,7 @@ export default function Field({
 
     if (tag === "circle") {
       if (!drag) {
-        setSelectedId(controlId)
-
-        setSegment({
-          ...segment, controls: segment.controls.map(c => ({
-            ...c, selected: c.id === controlId
-          })),
-
-        });
-
+        selectSegment(controlId)
       }
         
       setDrag(controlId)
@@ -81,9 +84,17 @@ export default function Field({
     }
 
     const control = new Control(posIn, 0);
-    const next: Segment = { ...segment, controls: [...segment.controls, control] };
 
-    setSegment?.(next);
+    setSegment(prev => {
+      const controls = [
+        ...prev.controls.map(c => ({ ...c, selected: false })),
+        { ...control, selected: true },
+      ];
+
+      return { ...prev, controls };
+    });
+
+    setSelectedId(control.id)
   };
 
   const controls = segment.controls;

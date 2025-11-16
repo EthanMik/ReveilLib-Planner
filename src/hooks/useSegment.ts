@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import type { Segment } from "../core/Path";
 
 let globalSegment: Segment = { controls: [] };
-let listeners: Array<(seg: Segment) => void> = [];
+
+let listeners: Array<Dispatch<SetStateAction<Segment>>> = [];
 
 function setGlobalSegment(next: Segment) {
   globalSegment = next;
@@ -19,8 +20,14 @@ export function useSegment() {
     };
   }, []);
 
-  const setSegment = (next: Segment) => {
-    setGlobalSegment(next);
+  const setSegment: Dispatch<SetStateAction<Segment>> = (next) => {
+    if (typeof next === "function") {
+      const updater = next as (prev: Segment) => Segment;
+      const computed = updater(globalSegment);
+      setGlobalSegment(computed);
+    } else {
+      setGlobalSegment(next);
+    }
   };
 
   return { segment, setSegment };
