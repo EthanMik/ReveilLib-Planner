@@ -107,7 +107,7 @@ function MirrorControl({
             ...prev,
             controls: prev.controls.map(control =>
                 control.selected
-                ? { ...control, position: { ...control.position, x: -control.position.x, }, }
+                ? { ...control, heading: normalizeDeg(360 - control.heading), position: { ...control.position, x: -control.position.x, }, }
                 : control
             ),
         }));
@@ -118,7 +118,7 @@ function MirrorControl({
             ...prev,
             controls: prev.controls.map(control =>
                 control.selected
-                ? { ...control, position: { ...control.position, y: -control.position.y, }, }
+                ? { ...control, heading: normalizeDeg(180 - control.heading), position: { ...control.position, y: -control.position.y, }, }
                 : control
             ),
         }));
