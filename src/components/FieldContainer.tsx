@@ -7,7 +7,7 @@ export default function FieldContainer({src}: {src: string}) {
     <Field
       src={src}
       img={FIELD_IMG_DIMENSIONS}
-      radius={15}
+      radius={17}
     />
   );
 }

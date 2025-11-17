@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Control, type Coordinate, type Segment } from "../core/Path";
-import { FIELD_REAL_DIMENSIONS, toInch, toPX, type Rectangle } from "../core/Util";
+import { clamp, FIELD_REAL_DIMENSIONS, normalizeDeg, toInch, toPX, toRad, type Rectangle } from "../core/Util";
 import { useSegment } from "../hooks/useSegment";
 
 type FieldProps = {
@@ -19,35 +19,68 @@ export default function Field({
   const svgRef = useRef<SVGSVGElement | null>(null); 
   const [selectedId, setSelectedId] = useState<string>("");
   const [drag, setDrag] = useState<string | null>(null);
-  const [ scale, setScale ] = useState<number>(0.5);
+  
+  const BASE_POS_STEP = 0.25;
+  const FAST_POS_STEP = 1;
+
+  const BASE_HEADING_STEP = 5;
+  const FAST_HEADING_STEP = 10;
+
+  const LARGE_HEADING_STEP = 90;
+  const LARGE_HEADING_STEP_FAST = 180;
 
   const moveControl = (evt: React.KeyboardEvent<HTMLDivElement>) => {
-    let xScale: number = 0;
-    let yScale: number = 0;
+    // Step sizes depend only on whether Shift is held *for this event*
+    const posStep = evt.shiftKey ? FAST_POS_STEP : BASE_POS_STEP;
+    const headingStep = evt.shiftKey ? FAST_HEADING_STEP : BASE_HEADING_STEP;
+    const largeHeadingStep = evt.shiftKey
+      ? LARGE_HEADING_STEP_FAST
+      : LARGE_HEADING_STEP;
 
-    setScale(evt.shiftKey ? 1 : 0.25);
+    let xScale = 0;
+    let yScale = 0;
+    let thetaScale = 0;
 
-    if (evt.key === "ArrowUp") {
-      yScale = -scale  
-    } else if (evt.key === "ArrowDown") {
-      yScale = scale;  
-    } else if (evt.key === "ArrowLeft") {
-      xScale = -scale
-    } else if (evt.key === "ArrowRight") {
-      xScale = scale
+    if (evt.key === "ArrowUp") yScale = posStep;
+    if (evt.key === "ArrowDown") yScale = -posStep;
+    if (evt.key === "ArrowLeft") xScale = -posStep;
+    if (evt.key === "ArrowRight") xScale = posStep;
+
+    if (evt.key.toLowerCase() === "a") {
+      thetaScale = -headingStep;
     }
-    if (xScale === 0 && yScale === 0) return;
+    if (evt.key.toLowerCase() === "d") {
+      thetaScale = headingStep;
+    }
+
+    if (evt.key.toLowerCase() === "w") {
+      thetaScale = largeHeadingStep;
+    }
+    if (evt.key.toLowerCase() === "s") {
+      thetaScale = -largeHeadingStep;
+    }
+
+    if (xScale === 0 && yScale === 0 && thetaScale === 0) return;
+
+    evt.preventDefault();
 
     setSegment(prev => ({
       ...prev,
       controls: prev.controls.map(control =>
-          control.selected
-          ? { ...control, position: { ...control.position, x: control.position.x + xScale, y: control.position.y + yScale, }, }
+        control.selected
+          ? {
+              ...control,
+              heading: normalizeDeg(control.heading + thetaScale),
+              position: {
+                ...control.position,
+                x: clamp(control.position.x + xScale, -72, 72),
+                y: clamp(control.position.y + yScale, -72, 72),
+              },
+            }
           : control
       ),
     }));
-
-  }
+  };
 
   const handleKeyDown = (evt: React.KeyboardEvent<HTMLDivElement>) => {
     if (evt.key === "Backspace" || evt.key === "Delete") {
@@ -166,7 +199,7 @@ export default function Field({
           <polyline
             points={pointsStr}
             fill="none"
-            stroke="rgb(59,130,246)"
+            stroke="rgba(21, 96, 189, 1)"
             strokeWidth={2}
           />
         )}
@@ -181,14 +214,39 @@ export default function Field({
 
             fill={
               control.id === selectedId
-                ? "rgba(239,68,68,0.6)"
-                : "rgba(59,130,246,0.25)"
+                ? "rgba(180, 50, 11, .75)"
+                : "rgba(160, 32, 7, .5)"
             }
-
-            stroke="rgb(59,130,246)"
+            
+            // stroke="#1560BD"
+            // strokeWidth={1}
+            />
+            <line
+            x1={toPX(control.position, FIELD_REAL_DIMENSIONS, img).x}
+            y1={toPX(control.position, FIELD_REAL_DIMENSIONS, img).y}
+            
+            x2={
+              toPX(
+              { 
+                x: control.position.x + (radius * FIELD_REAL_DIMENSIONS.w / img.w) * Math.sin(toRad(control.heading)), 
+                y: control.position.y + (radius * FIELD_REAL_DIMENSIONS.h / img.h) * Math.cos(toRad(control.heading)) 
+              }
+              , FIELD_REAL_DIMENSIONS, 
+              img).x
+            }
+            y2={
+              toPX(
+              { 
+                x: control.position.x + (radius * FIELD_REAL_DIMENSIONS.w / img.w) * Math.sin(toRad(control.heading)), 
+                y: control.position.y + (radius * FIELD_REAL_DIMENSIONS.h / img.h) * Math.cos(toRad(control.heading)) 
+              }
+              , FIELD_REAL_DIMENSIONS, 
+              img).y       
+            }
+            stroke="black"
             strokeWidth={2}
             />
-          </g>
+        </g>
         
 
         ))}

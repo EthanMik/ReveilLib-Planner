@@ -13,10 +13,10 @@ export class Control {
     public heading: number;
 
     constructor(position: Coordinate, heading = 0) {
-        this.position = position
-        this.heading = heading
-        this.id = makeId(10)
-        this.selected = false
+        this.position = position;
+        this.heading = heading;
+        this.id = makeId(10);
+        this.selected = false;
     }
 }
 

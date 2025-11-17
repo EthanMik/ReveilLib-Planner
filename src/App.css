@@ -2,6 +2,8 @@
 
 @theme {
     --color-medgray: #3C3B3B;
+    --color-medgray_hover: #323232;
     --color-blackgray: #242424;
     --color-lightgray: #848484;
+    --color-accent: #500000;
 }

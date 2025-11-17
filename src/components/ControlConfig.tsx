@@ -1,32 +1,30 @@
 import { useEffect, useState } from "react";
 import { useSegment } from "../hooks/useSegment";
-import { clamp } from "../core/Util";
 import flipHorizontal from "../assets/flip-horizontal.svg";
 import flipVertical from "../assets/flip-vertical.svg";
+import { normalizeDeg } from "../core/Util";
 
 type ControlInputProps = {
     getValue?: () => number | undefined;
     updateValue?: (value: number) => void;
-    valueMin: number;
-valueMax: number;
+    clampTo?: (value: number) => number;
 }
 
 function ControlInput({
     getValue,
     updateValue,
-    valueMin,
-    valueMax
+    clampTo,
 }: ControlInputProps) {
     const { segment } = useSegment();
 
     const [ value, SetValue ] = useState<number>(0);
     const [ edit, setEdit ] = useState<string | null>(null);
 
-    const display: string = edit !== null ? edit : value.toFixed(1);
+    const display: string = edit !== null ? edit : value.toFixed(2);
 
     const resetValue = () => {
         const val: number | undefined = getValue?.();
-        const num = val === undefined ? "" : val.toFixed(1); 
+        const num = val === undefined ? "" : val.toFixed(2); 
 
         setEdit(num);
     }
@@ -48,9 +46,15 @@ function ControlInput({
             if (!Number.isFinite(num)) return;
 
             const selectedControls = segment.controls.filter(c => c.selected);
-            if (selectedControls.length > 1) return;
+            if (selectedControls.length > 1) {
+                resetValue();
+                return;
 
-            updateValue?.(clamp(num, valueMin, valueMax));
+            } 
+
+            const clampNum = clampTo?.(num);
+            if (clampNum === undefined) return;
+            updateValue?.(clampNum);
 
             SetValue(num);
 
@@ -70,10 +74,11 @@ function ControlInput({
     return (
         <input 
             className="bg-blackgray w-[80px] h-[40px]
-            outline-none rounded-lg text-center text-white
-            hover:outline-1
+            outline-2 outline-transparent rounded-lg text-center text-white
+            hover:outline-lightgray
             "
-
+            
+            style={{fontSize: '18px'}}
             type="text"
             value={ display }
 
@@ -129,11 +134,11 @@ function MirrorControl({
 
     return (
         <button 
-            className="flex items-center justify-center w-[35px] h-[35px] 
-            rounded bg-transparent hover:bg-lightgray border-none outline-none fill-white"
+            className="flex items-center justify-center w-[40px] h-[40px] 
+            rounded-lg bg-transparent hover:bg-medgray_hover border-none outline-none fill-white"
             onClick={handleOnClick}>
             <img 
-                className="fill-white w-10 h-10"
+                className="fill-white w-[30px] h-[30px]"
                 src={src}   
             />
         </button>
@@ -142,7 +147,11 @@ function MirrorControl({
 
 export default function ControlConfig() {
     const { segment, setSegment } = useSegment();
-    
+
+    const clampToField = (value: number) => {
+        return Math.min(Math.max(value, -72), 72);
+    }
+
     const getXValue = () => {
         const x: number | undefined = segment.controls.find(c => c.selected)?.position.x;
         return x
@@ -190,14 +199,19 @@ export default function ControlConfig() {
                     ),
                 }));
     }
-
+    
     return (
-        <div className="flex items-center bg-medgray w-[500px] h-[65px] rounded-lg">
-            <ControlInput updateValue={updateXValue} getValue={getXValue} valueMin={-72} valueMax={72}/>
-            <ControlInput updateValue={updateYValue} getValue={getYValue} valueMin={-72} valueMax={72}/>
-            <ControlInput updateValue={updateHeadingValue} getValue={getHeadingValue} valueMin={-72} valueMax={72}/>
-            <MirrorControl mirrorDirection="x" src={flipHorizontal}/>
-            <MirrorControl mirrorDirection="y" src={flipVertical}/>
+        <div className="flex flex-row items-center justify-center gap-[10px] bg-medgray w-[500px] h-[65px] rounded-lg">
+            <span style={{ fontSize: 20 }}>X:</span>
+            <ControlInput updateValue={updateXValue} getValue={getXValue} clampTo={clampToField}/>
+            <span style={{ fontSize: 20 }}>Y:</span>
+            <ControlInput updateValue={updateYValue} getValue={getYValue} clampTo={clampToField}/>
+            <span style={{ fontSize: 20 }}>θ:</span>
+            <div className="flex items-center flex-row gap-[15px]">
+                <ControlInput updateValue={updateHeadingValue} getValue={getHeadingValue} clampTo={normalizeDeg}/>
+                <MirrorControl mirrorDirection="x" src={flipHorizontal}/>
+                <MirrorControl mirrorDirection="y" src={flipVertical}/>
+            </div>
         </div>
     );
 }
