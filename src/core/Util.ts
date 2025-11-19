@@ -10,6 +10,20 @@ export interface Rectangle {
 export const FIELD_REAL_DIMENSIONS: Rectangle = { x: -72, y: 72, w: 144, h: 144 };
 export const FIELD_IMG_DIMENSIONS: Rectangle = { x: 0, y: 0, w: 575, h: 575 };
 
+export function vector2Subtract(a: Coordinate, b: Coordinate): Coordinate {
+  return {
+    x: a.x - b.x,
+    y: a.y - b.y,
+  };
+}
+
+export function vector2Add(a: Coordinate, b: Coordinate): Coordinate {
+  return {
+    x: a.x + b.x,
+    y: a.y + b.y,
+  };
+}
+
 export function normalizeDeg(angle: number) { return ((angle % 360) + 360) % 360; }
 
 export function clamp(value: number, min: number, max: number) {

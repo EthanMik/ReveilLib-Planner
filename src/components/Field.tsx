@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Control, type Coordinate, type Segment } from "../core/Path";
-import { clamp, FIELD_REAL_DIMENSIONS, normalizeDeg, toInch, toPX, toRad, type Rectangle } from "../core/Util";
+import { clamp, FIELD_REAL_DIMENSIONS, normalizeDeg, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
 import { useSegment } from "../hooks/useSegment";
 
 type FieldProps = {
@@ -17,8 +17,10 @@ export default function Field({
 
   const { segment, setSegment } = useSegment();
   const svgRef = useRef<SVGSVGElement | null>(null); 
-  const [selectedId, setSelectedId] = useState<string>("");
-  const [drag, setDrag] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  type dragProps = { dragging: boolean, lastPos: Coordinate }
+  const [drag, setDrag] = useState<dragProps>({dragging: false, lastPos: {x: 0, y: 0}});
   
   const BASE_POS_STEP = 0.25;
   const FAST_POS_STEP = 1;
@@ -86,7 +88,7 @@ export default function Field({
     if (evt.key === "Backspace" || evt.key === "Delete") {
         const next: Segment = {
           controls:
-            segment.controls.filter((c) => c.id !== selectedId)
+            segment.controls.filter((c) => !selectedIds.includes(c.id))
         }
 
       setSegment(next);
@@ -95,29 +97,42 @@ export default function Field({
   }
 
   const handlePointerMove = (evt: React.PointerEvent<SVGSVGElement>) => {
-    if (!drag) return
+    if (!drag?.dragging) return
 
     const rect = (evt.currentTarget as SVGSVGElement).getBoundingClientRect();
     const posPx: Coordinate = { x: evt.clientX - rect.left, y: (evt.clientY - rect.top) }
-    
+    const deltaPosition = vector2Subtract(posPx, drag.lastPos);
+
     const next: Segment = {
       controls: 
         segment.controls.map((c) =>
-          c.id === drag ? { ...c, position: toInch(posPx, FIELD_REAL_DIMENSIONS, img) } : c
+          selectedIds.includes(c.id) ? { ...c, 
+            position: 
+            toInch(vector2Add(
+              toPX(c.position, FIELD_REAL_DIMENSIONS, img), deltaPosition), FIELD_REAL_DIMENSIONS, img) } : c
         ) 
     } 
+
+    setDrag((prev) =>
+      prev ? {...prev, lastPos: posPx } : prev
+    );
 
     setSegment(next);
   }
 
-  const endDrag = () => setDrag(null);
+  const endDrag = () => setDrag({dragging: false, lastPos: {x: 0, y: 0}});
+  const endSelecton = () => setSelectedIds([]);
 
-  const selectSegment = (controlId: string) => {
-    setSelectedId(controlId)
+  const selectSegment = (controlId: string, shifting: boolean) => {
+    if (shifting) {
+      setSelectedIds([controlId])
+    } else {
+      setSelectedIds([...selectedIds, controlId])
+    }
 
     setSegment({
       ...segment, controls: segment.controls.map(c => ({
-        ...c, selected: c.id === controlId
+        ...c, selected: selectedIds.includes(c.id)
       })),
 
     });
@@ -137,12 +152,17 @@ export default function Field({
     const posIn = toInch(posPx, FIELD_REAL_DIMENSIONS, img);
 
     if (tag === "circle") {
-      if (!drag) {
-        selectSegment(controlId)
+      if (!drag?.dragging) {
+        selectSegment(controlId, evt.shiftKey)
       }
         
-      setDrag(controlId)
+      setDrag({dragging: true, lastPos: {x: posPx.x, y: posPx.y}})
       return;
+    }
+
+    if (selectedIds.length > 1) {
+      setSelectedIds([])
+      return
     }
 
     const control = new Control(posIn, 0);
@@ -156,7 +176,7 @@ export default function Field({
       return { ...prev, controls };
     });
 
-    setSelectedId(control.id)
+    setSelectedIds([control.id])
   };
 
   const controls = segment.controls;
@@ -204,7 +224,7 @@ export default function Field({
           />
         )}
 
-        {segment.controls.map((control) => (
+        {segment.controls.map((control, idx) => (
           <g key={control.id}>
             <circle
             id={control.id}
@@ -213,13 +233,13 @@ export default function Field({
             r={radius}
 
             fill={
-              control.id === selectedId
+              selectedIds.includes(control.id)
                 ? "rgba(180, 50, 11, .75)"
                 : "rgba(160, 32, 7, .5)"
             }
             
-            // stroke="#1560BD"
-            // strokeWidth={1}
+            stroke="#1560BD"
+            strokeWidth={idx === segment.controls.length - 1 ? 2: 0}
             />
             <line
             x1={toPX(control.position, FIELD_REAL_DIMENSIONS, img).x}
