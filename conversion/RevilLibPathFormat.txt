@@ -1,0 +1,25 @@
+# WRAPPER #
+
+reckless->go({
+
+});
+
+# DRIVING #
+
+  &PilonsSegment(
+    &ConstantMotion([power]),
+    [pilons_correction],
+    &SimpleStop([harsh]_s, [coast]_s, [coast_power], [timeout]_s),
+    {[x]_in, [y]_ft}
+  ),
+
+# TURNING #
+
+  &RecklessTurnSegment(
+    [max_power],
+    [coast_power],
+    [theta]_deg,
+    harsh_turn,
+    coast_turn,
+    0.25_s
+  ),

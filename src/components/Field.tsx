@@ -1,7 +1,8 @@
 import React, { useRef, useState } from "react";
 import { Control, type Coordinate, type Segment } from "../core/Path";
-import { clamp, FIELD_REAL_DIMENSIONS, normalizeDeg, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
+import { FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
 import { useSegment } from "../hooks/useSegment";
+import useFieldMacros from "../hooks/useFieldMacros";
 
 type FieldProps = {
   src: string;
@@ -22,77 +23,15 @@ export default function Field({
   type dragProps = { dragging: boolean, lastPos: Coordinate }
   const [drag, setDrag] = useState<dragProps>({dragging: false, lastPos: {x: 0, y: 0}});
   
-  const BASE_POS_STEP = 0.25;
-  const FAST_POS_STEP = 1;
-
-  const BASE_HEADING_STEP = 5;
-  const FAST_HEADING_STEP = 10;
-
-  const LARGE_HEADING_STEP = 90;
-  const LARGE_HEADING_STEP_FAST = 180;
-
-  const moveControl = (evt: React.KeyboardEvent<HTMLDivElement>) => {
-    const posStep = evt.shiftKey ? FAST_POS_STEP : BASE_POS_STEP;
-    const headingStep = evt.shiftKey ? FAST_HEADING_STEP : BASE_HEADING_STEP;
-    const largeHeadingStep = evt.shiftKey
-      ? LARGE_HEADING_STEP_FAST
-      : LARGE_HEADING_STEP;
-
-    let xScale = 0;
-    let yScale = 0;
-    let thetaScale = 0;
-
-    if (evt.key === "ArrowUp") yScale = posStep;
-    if (evt.key === "ArrowDown") yScale = -posStep;
-    if (evt.key === "ArrowLeft") xScale = -posStep;
-    if (evt.key === "ArrowRight") xScale = posStep;
-
-    if (evt.key.toLowerCase() === "a") {
-      thetaScale = -headingStep;
-    }
-    if (evt.key.toLowerCase() === "d") {
-      thetaScale = headingStep;
-    }
-
-    if (evt.key.toLowerCase() === "w") {
-      thetaScale = largeHeadingStep;
-    }
-    if (evt.key.toLowerCase() === "s") {
-      thetaScale = -largeHeadingStep;
-    }
-
-    if (xScale === 0 && yScale === 0 && thetaScale === 0) return;
-
-    evt.preventDefault();
-
-    setSegment(prev => ({
-      ...prev,
-      controls: prev.controls.map(control =>
-        control.selected
-          ? {
-              ...control,
-              heading: normalizeDeg(control.heading + thetaScale),
-              position: {
-                ...control.position,
-                x: clamp(control.position.x + xScale, -100, 100),
-                y: clamp(control.position.y + yScale, -100, 100),
-              },
-            }
-          : control
-      ),
-    }));
-  };
+  const { moveControl, 
+          moveHeading,
+          deleteControl
+  } = useFieldMacros();
 
   const handleKeyDown = (evt: React.KeyboardEvent<HTMLDivElement>) => {
-    if (evt.key === "Backspace" || evt.key === "Delete") {
-        const next: Segment = {
-          controls:
-            segment.controls.filter((c) => !selectedIds.includes(c.id))
-        }
-
-      setSegment(next);
-    }
+    deleteControl(evt);
     moveControl(evt);
+    moveHeading(evt);
   }
 
   const handlePointerMove = (evt: React.PointerEvent<SVGSVGElement>) => {
@@ -137,6 +76,8 @@ export default function Field({
   
       if (!shifting && prev.length <= 1) {
         nextSelectedIds = [controlId];
+      } else if(shifting) {
+        nextSelectedIds = [...prev, controlId];
       } else {
         nextSelectedIds = [...prev, controlId];
       }
