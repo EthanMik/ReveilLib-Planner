@@ -20,7 +20,7 @@ function MotionList({name, segmentId}: MotionListProps) {
         setSegment(prev => ({
             ...prev,
             controls: prev.controls.map(control =>
-                control.selected
+                control.id === segmentId
                 ? { ...control, drivePower: value }
                 : control
             ),
@@ -31,7 +31,7 @@ function MotionList({name, segmentId}: MotionListProps) {
         setSegment(prev => ({
             ...prev,
             controls: prev.controls.map(control =>
-                control.selected
+                control.id === segmentId
                 ? { ...control, turnPower: value }
                 : control
             ),

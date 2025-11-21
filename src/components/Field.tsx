@@ -156,6 +156,7 @@ export default function Field({
     <div
       tabIndex={0}
       onKeyDown={handleKeyDown}
+      onMouseLeave={endDrag}
     >
       <svg
         ref={svgRef}
