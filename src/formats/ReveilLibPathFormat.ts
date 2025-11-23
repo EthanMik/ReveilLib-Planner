@@ -1,45 +1,62 @@
+import type { Coordinate } from "../core/Path";
+import { PathFormat } from "../formats/PathFormat";
 
-export default `
-# CONSANTS
+export class ReveilLibPathFormat extends PathFormat {
+  
+  // Correction
+  pilons_correction: string = 'pilons_correction'
 
-# Correction
-pilons_correction = pilons_correction
+  // Power
+  coast_power: string = '0.25'
 
-# Power
-coast_power = 0.02_s
+  // Stopping
+  harsh: string = '0.06_s'
+  coast: string = '0.02_s'
+  timeout: string = '0_s'
 
-# Stopping
-harsh = 0.06_s
-coast = 0.02_s
-timeout = 0_s
+  // Turn 
+  harsh_turn: string = '0.085';
+  coast_turn: string = '0.23';
+  brake_time: string = '0.1_s';
 
-# Turn 
-harsh_turn = 0.085;
-coast_turn = 0.23;
-brake_time = 0.1_s;
+startToString(position: Coordinate, heading: number): string {
+  return (
+    `
+  drivetrain::odom->set_position({${position.x.toFixed(2)}_in, ${position.y.toFixed(2)}_in, ${heading.toFixed(2)}_deg});
+    `
+  )
+}
 
-# WRAPPER
-reckless->go({
+  driveToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string {
+    return (
+    `
+  reckless->go({
+    &PilonsSegment(
+      &ConstantMotion(${speed.toFixed(2)}),
+      ${this.pilons_correction},
+      &SimpleStop(${this.harsh}, ${this.coast}, ${this.coast_power}, ${this.timeout}),
+      {${position.x.toFixed(2)}_in, ${position.y.toFixed(2)}_in}
+    )
+  });
+    `
+    );
+  }
 
-});
-
-# DRIVING
-
-  &PilonsSegment(
-    &ConstantMotion([drive_power]),
-    [pilons_correction],
-    &SimpleStop([harsh], [coast], [coast_power], [timeout]),
-    {[x]_in, [y]_in}
-  ),
-# TURNING
-
-  &LookAt(
-    [turn_power],
-    coast_power,
-    {[x]_in, [y]_in},
-    0_deg,
-    harsh_turn,
-    coast_turn,
-    brake_time
-  ),
-`;
+  turnToString(position: Coordinate, speed: number, callback: string, toPoint: boolean): string {
+    return (
+    `
+  reckless->go({
+    &LookAt(
+      ${speed.toFixed(2)},
+      ${this.coast_power},
+      {${position.x.toFixed(2)}_in, ${position.y.toFixed(2)}_in},
+      0_deg,
+      ${this.harsh_turn},
+      ${this.coast_turn},
+      ${this.brake_time}
+    )
+  });
+    `
+    );
+  }
+}

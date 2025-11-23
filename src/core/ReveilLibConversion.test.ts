@@ -1,9 +1,17 @@
-// import { describe, it, expect} from "vitest";
-// import { convertPath } from "./ReveilLibConversion";
+import { describe, it, expect} from "vitest";
+import { convertPath } from "./ReveilLibConversion";
+import { Control, type Segment } from "./Path";
+import { ReveilLibPathFormat } from "../formats/ReveilLibPathFormat";
 
-// describe.only("toPX", () => {
-//   it("Testing toPX", () => {
-//     const out = convertPath();
-//   });
+describe.only("convertPath", () => {
+  it("Testing convertPath", () => {
+    const segment = new Control({x: 10, y: 20}, 10);
+    const path: Segment = {controls: [segment]}
 
-// });
+    const format = new ReveilLibPathFormat();
+    const out = convertPath(path, format);
+
+    console.log(out);
+  });
+
+});
