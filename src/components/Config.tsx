@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { useCommand } from "../hooks/useCommands";
 
 function Commands() {
     const [ isOpen, setOpen ] = useState(false);
+    const { commands, setCommand } = useCommand();
     const menuRef = useRef<HTMLDivElement>(null);
 
+    
     const handleToggleMenu = () => {
         setOpen((prev) => !prev)
     }
@@ -32,10 +35,10 @@ function Commands() {
             </button>
 
             {isOpen && (
-                <div className="absolute left-0 top-full mt-1 w-35 h-10 rounded-sm bg-medgray_hover">
-                    <div className="">
+                <div className="absolute left-0 top-full w-60 h-auto rounded-sm shadow-sm shadow-black bg-medgray_hover">
+                    {commands.map((c) => (
                         <span>Command 1</span>
-                    </div>
+                    ))}
                 </div>
             )}
         </div>
