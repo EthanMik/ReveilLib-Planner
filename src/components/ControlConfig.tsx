@@ -34,40 +34,40 @@ function ControlInput({
 
     }, [segment.controls])
 
+    const executeValue = () => {
+        if (edit === null) return;
+
+        const num: number = parseFloat(edit);
+        if (!Number.isFinite(num)) return;
+
+        const selectedControls = segment.controls.filter(c => c.selected);
+        if (selectedControls.length > 1) {
+            resetValue();
+            return;
+
+        } 
+
+        const clampNum = clampTo?.(num);
+        if (clampNum === undefined) return;
+        updateValue?.(clampNum);
+
+        SetValue(num);
+
+    }
+
     const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
         setEdit(evt.target.value)
     }
 
-    const handleKeyDown = (evt: React.KeyboardEvent<HTMLInputElement>) => {
-        if (edit === null) return;
-        
-        if (evt.key === "Enter" || evt.key == "Tab") {
-            const num: number = parseFloat(edit);
-            if (!Number.isFinite(num)) return;
-
-            const selectedControls = segment.controls.filter(c => c.selected);
-            if (selectedControls.length > 1) {
-                resetValue();
-                return;
-
-            } 
-
-            const clampNum = clampTo?.(num);
-            if (clampNum === undefined) return;
-            updateValue?.(clampNum);
-
-            SetValue(num);
-
+    const handleKeyDown = (evt: React.KeyboardEvent<HTMLInputElement>) => {        
+        if (evt.key === "Enter") {
+            executeValue()
             evt.currentTarget.blur();
         }
     }
 
-    const cancel = () => {
-        resetValue();
-    }
-
     const handleBlur = (evt: React.FocusEvent<HTMLInputElement>) => {
-        cancel();
+        executeValue()
         evt.currentTarget.blur();
     }
 

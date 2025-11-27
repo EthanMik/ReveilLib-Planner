@@ -1,145 +1,17 @@
-import { useEffect, useRef, useState } from "react";
-import enter from "../assets/enter.svg";
-import { useCommand } from "../hooks/useCommands";
-
-type CommandInputProps = {
-    width: number,
-    height: number,
-}
-
-function CommmandInput({
-    width,
-    height
-}: CommandInputProps) {
-    const [ value, SetValue ] = useState<string>('');
-    const [ edit, setEdit ] = useState<string | null>(null);
-    const { setCommand } = useCommand();
-
-    const display: string = edit !== null ? edit : value
-
-    const resetValue = () => {
-        setEdit("");
-    }
-
-    const executeInput = () => {
-        if (edit === null) return;
-        const finalEdit = edit.replace(/ /g, "_")
-        SetValue(finalEdit);
-        setCommand((prev) => [...prev, finalEdit])
-        cancel();
-    }
-
-    const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
-        setEdit(evt.target.value)
-    }
-
-    const handleKeyDown = (evt: React.KeyboardEvent<HTMLInputElement>) => {        
-        if (evt.key === "Enter" || evt.key == "Tab") {
-            executeInput()
-        }
-    }
-    
-    const handleOnClick = () => {
-        executeInput();
-    }
-
-    const cancel = () => {
-        resetValue();
-    }
-
-    return (
-        <div className="flex flex-row gap-3">
-            <input 
-                className={`bg-blackgray
-                outline-2 outline-transparent rounded-lg text-center text-white
-                hover:outline-lightgray
-                `}
-                
-                maxLength={20}
-
-                style={{
-                    fontSize: '16px', 
-                    width: width, 
-                    height : height,
-                }}
-                type="text"
-                value={ display }
-    
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
-            />
-            <button className="hover:bg-blackgrayhover rounded-sm"
-                onClick={handleOnClick}>
-                <img src={enter}/>
-            </button>
-        </div>
-    );
-}
-
-function Commands() {
-    const [ isOpen, setOpen ] = useState(false);
-    const { commands } = useCommand();
-    const menuRef = useRef<HTMLDivElement>(null);
-
-    
-    const handleToggleMenu = () => {
-        setOpen((prev) => !prev)
-    }
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setOpen(false);
-            }
-        }
-
-        document.addEventListener("mousedown", handleClickOutside)
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside)
-        }
-    }, []);
-
-    return (
-        <div ref={menuRef} className={`relative ${isOpen ? "bg-medgray_hover" : "bg-none"} hover:bg-medgray_hover rounded-sm`}>
-            <button onClick={handleToggleMenu} className="px-3 py-1">
-                <span className="text-[20px]">
-                    Commands
-                </span>
-            </button>
-
-            {isOpen && (
-                <div className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-60 
-                    rounded-sm bg-medgray_hover min-h-2">
-                    <div className="flex flex-col mt-2 pl-2 mb-2 gap-2">
-                        <div className="flex flex-col max-h-40 overflow-y-auto">
-                            {commands.map((c) => (
-                                <span className="text-[16px]">{c}</span>
-                            ))}
-                        </div>
-        
-                        <CommmandInput width={175} height={30}/>
-                    </div>
-                </div>
-            )}
-        </div>
-    )
-}
-
+import CommandButton from "./Config/CommandButton";
+import FieldButton from "./Config/FieldButton";
 
 export default function Config() {
     return (
-        <div className="bg-medgray w-[575px] h-[65px] rounded-lg flex items-center gap-6 pl-6">
+        <div className="bg-medgray w-[575px] h-[65px] rounded-lg flex items-center gap-3 pl-6">
             <span className="text-[20px]">
                 File
             </span>
-            <span className="text-[20px]">
-                Field
-            </span>
+            <FieldButton/>
             <span className="text-[20px]">
                 Robot
             </span>
-            <Commands/>
+            <CommandButton/>
             <span className="text-[20px]">
                 Settings
             </span>
