@@ -62,8 +62,10 @@ function CommmandInput({
 
 function Commands() {
     const [ isOpen, setOpen ] = useState(false);
+    const { commands, setCommand } = useCommand();
     const menuRef = useRef<HTMLDivElement>(null);
 
+    
     const handleToggleMenu = () => {
         setOpen((prev) => !prev)
     }
