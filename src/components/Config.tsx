@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useSegment } from "../hooks/useSegment";
 import enter from "../assets/enter.svg";
+import { useCommand } from "../hooks/useCommands";
 
 type CommandInputProps = {
     width: number,
@@ -13,7 +13,7 @@ function CommmandInput({
 }: CommandInputProps) {
     const [ value, SetValue ] = useState<string>('');
     const [ edit, setEdit ] = useState<string | null>(null);
-    const { command, useCommand } = useCommands();
+    const { setCommand } = useCommand();
 
     const display: string = edit !== null ? edit : value
 
@@ -21,48 +21,64 @@ function CommmandInput({
         setEdit("");
     }
 
+    const executeInput = () => {
+        if (edit === null) return;
+        const finalEdit = edit.replace(/ /g, "_")
+        SetValue(finalEdit);
+        setCommand((prev) => [...prev, finalEdit])
+        cancel();
+    }
 
     const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
         setEdit(evt.target.value)
     }
 
-    const handleKeyDown = (evt: React.KeyboardEvent<HTMLInputElement>) => {
-        if (edit === null) return;
-        
+    const handleKeyDown = (evt: React.KeyboardEvent<HTMLInputElement>) => {        
         if (evt.key === "Enter" || evt.key == "Tab") {
-            SetValue(edit);
-            cancel();
+            executeInput()
         }
+    }
+    
+    const handleOnClick = () => {
+        executeInput();
     }
 
     const cancel = () => {
         resetValue();
     }
 
-    const handleBlur = (evt: React.FocusEvent<HTMLInputElement>) => {
-        evt.currentTarget.blur();
-    }
-
     return (
-        <input 
-            className={`bg-blackgray
-            outline-2 outline-transparent rounded-lg text-center text-white
-            hover:outline-lightgray
-            `}
-            
-            style={{fontSize: '14px', width: width, height : height}}
-            type="text"
-            value={ display }
+        <div className="flex flex-row gap-3">
+            <input 
+                className={`bg-blackgray
+                outline-2 outline-transparent rounded-lg text-center text-white
+                hover:outline-lightgray
+                `}
+                
+                maxLength={20}
 
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-        />
+                style={{
+                    fontSize: '16px', 
+                    width: width, 
+                    height : height,
+                }}
+                type="text"
+                value={ display }
+    
+                onChange={handleChange}
+                onKeyDown={handleKeyDown}
+            />
+            <button className="hover:bg-blackgrayhover rounded-sm"
+                onClick={handleOnClick}>
+                <img src={enter}/>
+            </button>
+        </div>
     );
 }
 
 function Commands() {
     const [ isOpen, setOpen ] = useState(false);
-    const { commands, setCommand } = useCommand();
+    const { commands } = useCommand();
     const menuRef = useRef<HTMLDivElement>(null);
 
     
@@ -93,13 +109,16 @@ function Commands() {
             </button>
 
             {isOpen && (
-                <div className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-60 h-auto rounded-sm bg-medgray_hover">
-                    <div className="flex flex-col mt-2 pl-2 mb-2 gap-3">
-                        <span className="text-[16px]">Command 1</span>
-                        <div className="flex flex-row gap-3">
-                            <CommmandInput width={175} height={30}/>
-                            <img src={enter}/>
+                <div className="absolute shadow-xs mt-1 shadow-black left-0 top-full w-60 
+                    rounded-sm bg-medgray_hover min-h-2">
+                    <div className="flex flex-col mt-2 pl-2 mb-2 gap-2">
+                        <div className="flex flex-col max-h-40 overflow-y-auto">
+                            {commands.map((c) => (
+                                <span className="text-[16px]">{c}</span>
+                            ))}
                         </div>
+        
+                        <CommmandInput width={175} height={30}/>
                     </div>
                 </div>
             )}
