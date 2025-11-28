@@ -134,7 +134,7 @@ function MirrorControl({
 
     return (
         <button 
-            className="flex items-center justify-center w-[40px] h-[40px] 
+            className="flex items-center justify-center w-[40px] h-[40px] cursor-pointer 
             rounded-lg bg-transparent hover:bg-medgray_hover border-none outline-none fill-white"
             onClick={handleOnClick}>
             <img 

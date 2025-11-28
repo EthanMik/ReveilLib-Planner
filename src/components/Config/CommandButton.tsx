@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import enter from "../../assets/enter.svg";
+import cross from "../../assets/cross.svg"
 import { useCommand } from "../../hooks/useCommands";
+import { Command } from "../../core/Path";
 
 type CommandInputProps = {
     width: number,
@@ -22,10 +24,11 @@ function CommmandInput({
     }
 
     const executeInput = () => {
-        if (edit === null) return;
+        if (edit === null || edit === "") return;
         const finalEdit = edit.replace(/ /g, "_")
         SetValue(finalEdit);
-        setCommand((prev) => [...prev, finalEdit])
+
+        setCommand((prev) => [...prev, new Command(finalEdit)])
         cancel();
     }
 
@@ -68,11 +71,37 @@ function CommmandInput({
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
             />
-            <button className="hover:bg-blackgrayhover rounded-sm"
+            <button className="hover:bg-blackgrayhover rounded-sm cursor-pointer"
                 onClick={handleOnClick}>
                 <img src={enter}/>
             </button>
         </div>
+    );
+}
+
+type RemoveCommandButtonProps = {
+    commandId: string
+}
+
+function RemoveCommandButton({commandId}: RemoveCommandButtonProps) {
+    const { setCommand } = useCommand();
+
+    const handleDeleteOnClick = () => {
+        setCommand((prev) => prev.filter((c) => c.id !== commandId))
+    }
+
+    return (
+        <div className="w-[25px] h-[25px]">
+            <button 
+                onClick={handleDeleteOnClick}
+                className="cursor-pointer rounded-sm hover:bg-blackgrayhover"
+            >
+                <img src={cross}
+                />
+            </button>
+
+        </div>
+
     );
 }
 
@@ -102,7 +131,7 @@ export default function CommandButton() {
 
     return (
         <div ref={menuRef} className={`relative ${isOpen ? "bg-medgray_hover" : "bg-none"} hover:bg-medgray_hover rounded-sm`}>
-            <button onClick={handleToggleMenu} className="px-3 py-1">
+            <button onClick={handleToggleMenu} className="px-3 py-1 cursor-pointer">
                 <span className="text-[20px]">
                     Commands
                 </span>
@@ -114,7 +143,10 @@ export default function CommandButton() {
                     <div className="flex flex-col mt-2 pl-2 mb-2 gap-2">
                         <div className="flex flex-col max-h-40 overflow-y-auto">
                             {commands.map((c) => (
-                                <span className="text-[16px]">{c}</span>
+                                <div className="flex flex-row items-center justify-between pr-3">
+                                    <span className="text-[16px]">{c.name}</span>
+                                    <RemoveCommandButton commandId={c.id}/>
+                                </div>
                             ))}
                         </div>
         

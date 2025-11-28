@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import Slider from "./Slider";
-import eye from "../assets/eye.svg";
+import eyeOpen from "../assets/eye-open.svg";
+import eyeClosed from "../assets/eye-closed.svg";
+import threeDots from "../assets/three-dots.svg"
 import lockClose from "../assets/lock-close.svg";
+import lockOpen from "../assets/lock-open.svg"
 import downArrow from "../assets/down-arrow.svg";
 import plus from "../assets/plus.svg";
 import copy from "../assets/copy.svg";
@@ -15,9 +18,11 @@ type MotionListProps = {
 }
 
 function MotionList({name, segmentId}: MotionListProps) {
-    const [value, setValue] = useState<number>(0);
-    const { segment, setSegment } = useSegment();
-    let selected = segment.controls.find((c) => c.id === segmentId)?.selected
+  const [value, setValue] = useState<number>(0);
+  const { segment, setSegment } = useSegment();
+  const selected = segment.controls.find((c) => c.id === segmentId)?.selected;
+  const [ isEyeOpen, setEyeOpen ] = useState(false);
+  const [ isLocked, setLocked ] = useState(false);
 
     useEffect(() => {
       if (name === "Drive") {
@@ -44,6 +49,35 @@ function MotionList({name, segmentId}: MotionListProps) {
 
     }, [value])
 
+    const handleEyeOnClick = () => {
+      setEyeOpen((visible) => {
+        setSegment(prev => ({
+            ...prev,
+            controls: prev.controls.map(control =>
+                control.id === segmentId
+                ? { ...control, visible: !visible }
+                : control
+            ),
+        }));
+        return !visible
+      })
+    }
+
+    const handleLockOnClick = () => {
+      setLocked((locked) => {
+        setSegment(prev => ({
+            ...prev,
+            controls: prev.controls.map(control =>
+                control.id === segmentId
+                ? { ...control, locked: !locked }
+                : control
+            ),
+        }));
+
+        return !locked
+      })
+    }
+
     return (
         <div className={`${selected ? "bg-medlightgray" : ""} center justify-between items-center 
         flex flex-row w-[450px] h-[35px] gap-[10px]
@@ -52,12 +86,19 @@ function MotionList({name, segmentId}: MotionListProps) {
             <img className="w-[15px] h-[15px]"
                 src={downArrow}
             />
-            <img className="w-[30px] h-[22px]"
-                src={eye}
-            />
-            <img className="w-[30px] h-[22px]"
-                src={lockClose}
-            />
+            <button className="cursor-pointer" 
+              onClick={handleEyeOnClick}>
+              <img className="w-[30px] h-[22px]"
+                  src={isEyeOpen ? eyeClosed : eyeOpen}
+              />
+            </button>
+
+            <button className="cursor-pointer" 
+              onClick={handleLockOnClick}>
+              <img className="w-[30px] h-[22px]"
+                  src={isLocked ? lockClose : lockOpen}
+              />
+            </button>
             <span className="w-[80px] text-left">
                 {name}
             </span>
@@ -73,7 +114,7 @@ function MotionList({name, segmentId}: MotionListProps) {
                 {(value / 100).toFixed(2)}
             </span>
             <img className="w-[18px] h-[18px]"
-                src={plus}
+                src={threeDots}
             />
         </div>
     );
@@ -96,7 +137,7 @@ function PathConfigHeader() {
       </span>
         <div className="flex flex-row gap-[10px] items-center">
           <button 
-            className="w-[30px] h-[30px] flex items-center justify-center 
+            className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer 
                       rounded-sm hover:bg-medgray_hover active:scale-95 transition-normal duration-50"
             onClick={copyOnClick}
             >
@@ -128,7 +169,7 @@ export default function PathConfig() {
           <>
             {idx > 0 ? <MotionList name="Drive" segmentId={c.id} /> : <div/>}
             {idx > 0 && c.turnToPos !== null ? <MotionList name="Turn" segmentId={c.id} /> : <div/>}
-            {/* {idx === 0 ? <MotionList name="Start" /> : <div/>} */}
+            {idx === 0 ? <MotionList name="Start" segmentId={c.id} /> : <div/>}
           </>
         ))}
 

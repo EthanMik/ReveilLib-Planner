@@ -46,7 +46,7 @@ export default function FieldButton() {
 
     return (
         <div ref={menuRef} className={`relative ${isOpen ? "bg-medgray_hover" : "bg-none"} hover:bg-medgray_hover rounded-sm`}>
-            <button onClick={handleToggleMenu} className="px-3 py-1">
+            <button onClick={handleToggleMenu} className="px-3 py-1 cursor-pointer">
                 <span className="text-[20px]">
                     Field
                 </span>
@@ -59,7 +59,7 @@ export default function FieldButton() {
                         <div className="flex flex-col max-h-40 overflow-y-auto">
                             {fields.map((c) => (
                                 <button 
-                                    className="hover:bg-blackgrayhover"
+                                    className="hover:bg-blackgrayhover cursor-pointer"
                                     onClick={() => handleOnClick(c.src)}
                                 >
                                     <span className="text-[16px]">{c.name}</span>

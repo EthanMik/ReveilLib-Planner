@@ -44,10 +44,16 @@ export default function Field({
     const next: Segment = {
       controls: 
         segment.controls.map((c) =>
-          selectedIds.includes(c.id) ? { ...c, 
-            position: 
-            toInch(vector2Add(
-              toPX(c.position, FIELD_REAL_DIMENSIONS, img), deltaPosition), FIELD_REAL_DIMENSIONS, img) } : c
+          selectedIds.includes(c.id) ? 
+            { ...c, 
+              position: 
+                !c.locked ?
+                toInch(vector2Add(
+                toPX(c.position, FIELD_REAL_DIMENSIONS, img), deltaPosition), 
+                FIELD_REAL_DIMENSIONS, img) 
+                : c.position
+            } 
+          : c
         ) 
     } 
 
@@ -86,7 +92,7 @@ export default function Field({
         ...prevSegment,
         controls: prevSegment.controls.map((c) => ({
           ...c,
-          selected: nextSelectedIds.includes(c.id),
+          selected: !c.locked && nextSelectedIds.includes(c.id),
         })),
       }));
   
@@ -127,10 +133,12 @@ export default function Field({
 
     const control = new Control(posIn, 0);
 
+    const selectedIndex = segment.controls.find((c) => c.selected)
+
     setSegment(prev => {
       const controls = [
         ...prev.controls.map(c => ({ ...c, selected: false })),
-        { ...control, selected: true },
+        { ...control, selected: !control.locked },
       ];
 
       return { ...prev, controls };
@@ -141,7 +149,7 @@ export default function Field({
 
   const controls = segment.controls;
 
-  const pointsStr =
+  const moveToPoints =
     controls.length > 1
       ? controls
           .map((m) => {
@@ -150,7 +158,35 @@ export default function Field({
           })
           .join(" ")
       : "";
+  
+  const boomerangToPoints = 
+    controls.length > 1
+      ? controls
+          .map((m, idx) => {
+            if (idx < 1) return
 
+            const lead = .4;
+            const pStart = toPX(controls[idx - 1].position, FIELD_REAL_DIMENSIONS, img);
+            const pEnd = toPX(m.position, FIELD_REAL_DIMENSIONS, img);
+            const ΘEnd = m.heading;
+            const h = Math.sqrt(((pStart.x - pEnd.x) * (pStart.x - pEnd.x)) 
+                              + ((pStart.y - pEnd.y) * (pStart.y - pEnd.y)));
+
+            const x1 = pEnd.x - h * Math.sin(toRad(ΘEnd)) * lead
+            const y1 = pEnd.y + h * Math.cos(toRad(ΘEnd)) * lead
+
+            let boomerangPts: string[] = [];
+            for (let t = 0; t <= 1; t += .05) {
+              const x = ((1 - t) * ((1 - t) * pStart.x + t * x1) + t * ((1 - t) * x1 + t * pEnd.x))
+              const y = ((1 - t) * ((1 - t) * pStart.y + t * y1) + t * ((1 - t) * y1 + t * pEnd.y))
+              boomerangPts = [...boomerangPts, `${x},${y}`]
+            }
+
+            // return `${p.x},${p.y}`;
+            return boomerangPts.join(" ")
+          })
+          .join(" ")
+      : "";
 
   return (
     <div
@@ -178,9 +214,10 @@ export default function Field({
 
         {segment.controls.length >= 2 && (
           <polyline
-            points={pointsStr}
+            points={moveToPoints}
             fill="none"
             stroke="rgba(21, 96, 189, 1)"
+            strokeDasharray={"10, 5"}
             strokeWidth={2}
           />
         )}
@@ -190,47 +227,53 @@ export default function Field({
             key={control.id}
             onPointerDown={(e) => handleControlPointerDown(e, control.id)}
           >
-            <circle
-            className="cursor-grab stroke-[#1560BD]"
-
-            id={control.id}
-            cx={toPX(control.position, FIELD_REAL_DIMENSIONS, img).x}
-            cy={toPX(control.position, FIELD_REAL_DIMENSIONS, img).y}
-            r={radius}
-
-            fill={
-              selectedIds.includes(control.id)
-                ? "rgba(180, 50, 11, .75)"
-                : "rgba(160, 32, 7, .5)"
-            }
+            {!control.visible ?
+            <>
+              <circle
+              className="stroke-[#1560BD]"
+              style={control.locked ? {cursor : "not-allowed"} : {cursor : "grab"}}
             
-            strokeWidth={idx === segment.controls.length - 1 ? 2: 0}
-            />
-            <line
-            x1={toPX(control.position, FIELD_REAL_DIMENSIONS, img).x}
-            y1={toPX(control.position, FIELD_REAL_DIMENSIONS, img).y}
-            
-            x2={
-              toPX(
-              { 
-                x: control.position.x + (radius * FIELD_REAL_DIMENSIONS.w / img.w) * Math.sin(toRad(control.heading)), 
-                y: control.position.y + (radius * FIELD_REAL_DIMENSIONS.h / img.h) * Math.cos(toRad(control.heading)) 
+              id={control.id}
+              cx={toPX(control.position, FIELD_REAL_DIMENSIONS, img).x}
+              cy={toPX(control.position, FIELD_REAL_DIMENSIONS, img).y}
+              r={radius}
+
+              fill={
+                control.selected
+                  ? "rgba(180, 50, 11, .75)"
+                  : "rgba(160, 32, 7, .5)"
               }
-              , FIELD_REAL_DIMENSIONS, 
-              img).x
-            }
-            y2={
-              toPX(
-              { 
-                x: control.position.x + (radius * FIELD_REAL_DIMENSIONS.w / img.w) * Math.sin(toRad(control.heading)), 
-                y: control.position.y + (radius * FIELD_REAL_DIMENSIONS.h / img.h) * Math.cos(toRad(control.heading)) 
+              
+              strokeWidth={idx === segment.controls.length - 1 ? 2: 0}
+              />
+              <line
+              x1={toPX(control.position, FIELD_REAL_DIMENSIONS, img).x}
+              y1={toPX(control.position, FIELD_REAL_DIMENSIONS, img).y}
+              
+              x2={
+                toPX(
+                { 
+                  x: control.position.x + (radius * FIELD_REAL_DIMENSIONS.w / img.w) * Math.sin(toRad(control.heading)), 
+                  y: control.position.y + (radius * FIELD_REAL_DIMENSIONS.h / img.h) * Math.cos(toRad(control.heading)) 
+                }
+                , FIELD_REAL_DIMENSIONS, 
+                img).x
               }
-              , FIELD_REAL_DIMENSIONS, 
-              img).y       
+              y2={
+                toPX(
+                { 
+                  x: control.position.x + (radius * FIELD_REAL_DIMENSIONS.w / img.w) * Math.sin(toRad(control.heading)), 
+                  y: control.position.y + (radius * FIELD_REAL_DIMENSIONS.h / img.h) * Math.cos(toRad(control.heading)) 
+                }
+                , FIELD_REAL_DIMENSIONS, 
+                img).y       
+              }
+              stroke="black"
+              strokeWidth={2}
+              />
+            </>
+              : <></>
             }
-            stroke="black"
-            strokeWidth={2}
-            />
         </g>
         
 
