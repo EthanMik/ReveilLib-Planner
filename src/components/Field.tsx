@@ -133,15 +133,31 @@ export default function Field({
 
     const control = new Control(posIn, 0);
 
-    const selectedIndex = segment.controls.find((c) => c.selected)
-
     setSegment(prev => {
-      const controls = [
-        ...prev.controls.map(c => ({ ...c, selected: false })),
-        { ...control, selected: !control.locked },
-      ];
+      let selectedIndex = prev.controls.findIndex(c => c.selected);
+      selectedIndex = selectedIndex === -1 ? selectedIndex = prev.controls.length : selectedIndex + 1;
 
-      return { ...prev, controls };
+      const oldControls = prev.controls;
+
+      const newControl = { ...control, selected: !control.locked };
+
+      const inserted =
+        selectedIndex >= 0
+          ? [
+              ...oldControls.slice(0, selectedIndex),
+              newControl,
+              ...oldControls.slice(selectedIndex)
+            ]
+          : [...oldControls, newControl];
+
+      const controls = inserted.map(c =>
+        c === newControl ? c : { ...c, selected: false }
+      );
+
+      return {
+        ...prev,
+        controls,
+      };
     });
 
     setSelectedIds([control.id])
