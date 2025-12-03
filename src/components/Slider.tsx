@@ -4,17 +4,21 @@ import { clamp } from "../core/Util";
 type SliderProps = {
   sliderWidth: number,
   sliderHeight: number,
+  sliderColor?: string,
   knobWidth: number,
   knobHeight: number,
+  knobColor?: string,
   value: number,
-  setValue?: (value: number) => void; 
+  setValue: (value: number) => void; 
 }
 
 export default function Slider({
   sliderWidth,
   sliderHeight,
+  sliderColor = "--color-lightgray",
   knobWidth,
   knobHeight,
+  knobColor = "--color-verylightgray",
   value, 
   setValue
 }: SliderProps) {
@@ -48,17 +52,19 @@ export default function Slider({
   }
 
   return (
-    <div className="bg-lightgray rounded-sm relative"
-      style={{       
+    <div className="rounded-sm relative bg-amber-50"
+      style={{
+        backgroundColor: `var(${sliderColor})`,
         width: `${sliderWidth}px`,
         height: `${sliderHeight}px`,
-        }}
+      }}
       ref={trackRef}
       onMouseDown={startDrag}
-
-    >
-      <div className="bg-white absolute top-[50%] rounded-full cursor-grab"
+      
+      >
+      <div className="absolute top-[50%] rounded-full cursor-grab"
         style={{
+          backgroundColor: `var(${knobColor})`,
           width: `${knobWidth}px`,
           height: `${knobHeight}px`,
           left: `${value}%`,

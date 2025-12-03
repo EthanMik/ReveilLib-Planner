@@ -4,7 +4,7 @@ import { calculateHeading, clamp, normalizeDeg } from "../core/Util";
 import type { Segment } from "../core/Path";
 
 export default function useFieldMacros() {
-  const { segment, setSegment } = useSegment();
+  const [ segment, setSegment ] = useSegment(); 
   
   const MIN_FIELD_X = -100;
   const MIN_FIELD_Y = -100;

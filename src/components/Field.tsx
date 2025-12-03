@@ -3,6 +3,8 @@ import { Control, type Coordinate, type Segment } from "../core/Path";
 import { FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
 import { useSegment } from "../hooks/useSegment";
 import useFieldMacros from "../hooks/useFieldMacros";
+import RobotView from "./RobotView";
+import { usePose } from "../hooks/usePose";
 
 type FieldProps = {
   src: string;
@@ -16,9 +18,10 @@ export default function Field({
   radius,
 }: FieldProps) {
 
-  const { segment, setSegment } = useSegment();
+  const [segment, setSegment] = useSegment();
   const svgRef = useRef<SVGSVGElement | null>(null); 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [pose, setPose] = usePose();
 
   type dragProps = { dragging: boolean, lastPos: Coordinate }
   const [drag, setDrag] = useState<dragProps>({dragging: false, lastPos: {x: 0, y: 0}});
@@ -290,6 +293,17 @@ export default function Field({
             </>
               : <></>
             }
+
+        {pose === null ? <></> :
+          <RobotView
+              x={pose.x}
+              y={pose.y}
+              angle={pose.angle}
+              width={14}
+              height={14}
+          />
+        }
+
         </g>
         
 

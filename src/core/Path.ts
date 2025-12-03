@@ -5,6 +5,12 @@ export interface Coordinate {
     y: number
 }
 
+export interface Pose {
+    x: number,
+    y: number,
+    angle: number
+}
+
 export class Control {
     public id: string;
     public selected: boolean;
@@ -32,14 +38,4 @@ export class Control {
 
 export interface Segment {
     controls: Control[];
-}
-
-export class Command {
-    public name: string;
-    public id: string;
-
-    constructor (name: string) {
-        this.name = name;
-        this.id = makeId(10)
-    }
 }

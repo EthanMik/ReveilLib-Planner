@@ -19,7 +19,7 @@ type MotionListProps = {
 
 function MotionList({name, segmentId}: MotionListProps) {
   const [value, setValue] = useState<number>(0);
-  const { segment, setSegment } = useSegment();
+  const [ segment, setSegment ] = useSegment(); 
   const selected = segment.controls.find((c) => c.id === segmentId)?.selected;
   const [ isEyeOpen, setEyeOpen ] = useState(false);
   const [ isLocked, setLocked ] = useState(false);
@@ -121,7 +121,7 @@ function MotionList({name, segmentId}: MotionListProps) {
 }
 
 function PathConfigHeader() {
-  const {segment, setSegment} = useSegment(); 
+  const [ segment, setSegment ] = useSegment(); 
 
   const copyOnClick = () => {
     const format = new ReveilLibPathFormat();
@@ -157,7 +157,7 @@ function PathConfigHeader() {
 }
 
 export default function PathConfig() {
-  const { segment, setSegment } = useSegment();
+  const [ segment, setSegment ] = useSegment(); 
 
   return (
     <div className="bg-medgray w-[500px] h-[650px] rounded-lg p-[15px] flex flex-col">

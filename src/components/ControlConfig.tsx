@@ -15,7 +15,7 @@ function ControlInput({
     updateValue,
     clampTo,
 }: ControlInputProps) {
-    const { segment } = useSegment();
+    const [ segment, setSegment ] = useSegment(); 
 
     const [ value, SetValue ] = useState<number>(0);
     const [ edit, setEdit ] = useState<string | null>(null);
@@ -100,7 +100,7 @@ function MirrorControl({
     src,
     mirrorDirection
 }: MirrorControlProps) {
-    const { setSegment } = useSegment(); 
+    const [ segment, setSegment ] = useSegment(); 
 
     const mirrorX = () => {
         setSegment(prev => ({
@@ -146,7 +146,7 @@ function MirrorControl({
 }
 
 export default function ControlConfig() {
-    const { segment, setSegment } = useSegment();
+    const [ segment, setSegment ] = useSegment(); 
 
     const clampToField = (value: number) => {
         return Math.min(Math.max(value, -100), 100);

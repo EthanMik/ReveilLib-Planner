@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import enter from "../../assets/enter.svg";
 import cross from "../../assets/cross.svg"
 import { useCommand } from "../../hooks/useCommands";
-import { Command } from "../../core/Path";
+import { Command } from "../../core/Command";
 
 type CommandInputProps = {
     width: number,
@@ -15,7 +15,7 @@ function CommmandInput({
 }: CommandInputProps) {
     const [ value, SetValue ] = useState<string>('');
     const [ edit, setEdit ] = useState<string | null>(null);
-    const { setCommand } = useCommand();
+    const [ commands, setCommand ] = useCommand();
 
     const display: string = edit !== null ? edit : value
 
@@ -84,7 +84,7 @@ type RemoveCommandButtonProps = {
 }
 
 function RemoveCommandButton({commandId}: RemoveCommandButtonProps) {
-    const { setCommand } = useCommand();
+    const [ commands, setCommand ] = useCommand();
 
     const handleDeleteOnClick = () => {
         setCommand((prev) => prev.filter((c) => c.id !== commandId))
@@ -107,7 +107,7 @@ function RemoveCommandButton({commandId}: RemoveCommandButtonProps) {
 
 export default function CommandButton() {
     const [ isOpen, setOpen ] = useState(false);
-    const { commands } = useCommand();
+    const [ commands, setCommand ] = useCommand();
     const menuRef = useRef<HTMLDivElement>(null);
 
     
