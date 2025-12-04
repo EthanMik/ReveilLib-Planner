@@ -9,6 +9,8 @@ import { kOdomDrivePID, kOdomHeadingPID, kturnPID } from "../core/mikLibSim/Cons
 import { precomputePath, type PathSim } from "../core/PathSim";
 import { usePose } from "../hooks/usePose";
 import { clamp } from "../core/Util";
+import { useRobotVisibility } from "../hooks/useRobotVisibility";
+import Checkbox from "./Checkbox";
 
 const robot = new Robot(
     -55, // Start x
@@ -43,8 +45,10 @@ export default function PathSimulator() {
     const [time, setTime] = useState<number>(0);
     const [pose, setPose] = usePose()
     const [playing, setPlaying] = useState<boolean>(false);
+    const [robotVisible, setRobotVisibility] = useRobotVisibility();
 
     const setPathPercent = (path: PathSim, percent: number) => {
+        setRobotVisibility(true);
         if (!path.trajectory.length) return;
 
         percent = clamp(percent, 0, 100) / 100;
@@ -57,6 +61,7 @@ export default function PathSimulator() {
     }
 
     const setPathTime = (path: PathSim, t: number) => {
+        setRobotVisibility(true);
         if (!path.trajectory.length) return;
 
         t = clamp(t, 0, path.totalTime);
@@ -99,9 +104,9 @@ export default function PathSimulator() {
     
     return (
         <div className="flex bg-medgray w-[575px] h-[65px] rounded-lg 
-            items-center justify-center gap-6"
+            items-center justify-center gap-4"
         >
-            <button onClick={() => setPlaying(p => !p)} className="hover:bg-medgray_hover px-2 py-1 rounded-sm">
+            <button onClick={() => setPlaying(p => !p)} className="hover:bg-medgray_hover px-1 py-1 rounded-sm">
                 {playing ?
                     <img className="w-[25px] h-[25px]" src={pause}/> :
                     <img className="w-[25px] h-[25px]" src={play}/> 
@@ -111,16 +116,17 @@ export default function PathSimulator() {
             <Slider 
                 value={value} 
                 setValue={setValue} 
-                sliderWidth={400} 
+                sliderWidth={375} 
                 sliderHeight={8} 
                 knobHeight={22} 
                 knobWidth={22}
                 onChangeStart={() => setPlaying(false)}
                 OnChangeEnd={() => {}}
             />
-            <div className="w-14">
+            <div className="w-11">
                 <span className="block">{time.toFixed(2)} s</span>
             </div>
+            <Checkbox checked={robotVisible} setChecked={setRobotVisibility}/>
         </div>        
     );
 }

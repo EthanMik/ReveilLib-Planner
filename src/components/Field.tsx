@@ -1,10 +1,12 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Control, type Coordinate, type Segment } from "../core/Path";
 import { FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
 import { useSegment } from "../hooks/useSegment";
 import useFieldMacros from "../hooks/useFieldMacros";
 import RobotView from "./RobotView";
 import { usePose } from "../hooks/usePose";
+import { useRobotVisibility } from "../hooks/useRobotVisibility";
+import { usePathVisibility } from "./usePathVisibility";
 
 type FieldProps = {
   src: string;
@@ -22,21 +24,38 @@ export default function Field({
   const svgRef = useRef<SVGSVGElement | null>(null); 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [pose, setPose] = usePose();
+  const [ robotVisible, setRobotVisibility ] = useRobotVisibility();
+  const [ pathVisible, setPathVisibility] = usePathVisibility();
 
   type dragProps = { dragging: boolean, lastPos: Coordinate }
   const [drag, setDrag] = useState<dragProps>({dragging: false, lastPos: {x: 0, y: 0}});
   
   const { moveControl, 
           moveHeading,
-          deleteControl
+          deleteControl,
   } = useFieldMacros();
+
+  useEffect(() => {
+    const handleKeyDown = (evt: KeyboardEvent) => {
+      if (evt.key.toLowerCase() === "r") {
+        setRobotVisibility(v => !v)
+        evt.stopPropagation();
+      }
+    }
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+      
+  }, []);
 
   const handleKeyDown = (evt: React.KeyboardEvent<HTMLDivElement>) => {
     deleteControl(evt);
     moveControl(evt);
     moveHeading(evt);
   }
-
+  
   const handlePointerMove = (evt: React.PointerEvent<SVGSVGElement>) => {
     if (!drag?.dragging) return
 
@@ -122,7 +141,7 @@ export default function Field({
   }
 
   const handleBackgroundPointerDown = (evt: React.PointerEvent<SVGSVGElement>) => {
-    if (evt.button !== 0) return;
+    if (evt.button !== 0 || pathVisible) return;
         
     const rect = (evt.currentTarget as SVGSVGElement).getBoundingClientRect();
     const posPx: Coordinate = { x: evt.clientX - rect.left, y: (evt.clientY - rect.top) }
@@ -231,7 +250,7 @@ export default function Field({
           height={img.h}
         />
 
-        {segment.controls.length >= 2 && (
+        {!pathVisible && segment.controls.length >= 2 && (
           <polyline
             points={moveToPoints}
             fill="none"
@@ -241,7 +260,7 @@ export default function Field({
           />
         )}
 
-        {pose === null ? <></> :
+        {pose === null || !robotVisible ? <></> :
           <RobotView
               x={pose.x}
               y={pose.y}
@@ -251,7 +270,7 @@ export default function Field({
           />
         }
         
-        {segment.controls.map((control, idx) => (
+        {!pathVisible && segment.controls.map((control, idx) => (
           <g 
             key={control.id}
             onPointerDown={(e) => handleControlPointerDown(e, control.id)}

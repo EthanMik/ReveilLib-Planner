@@ -5,12 +5,12 @@ import type { Segment } from "../core/Path";
 
 export default function useFieldMacros() {
   const [ segment, setSegment ] = useSegment(); 
+
   
   const MIN_FIELD_X = -100;
   const MIN_FIELD_Y = -100;
   const MAX_FIELD_X = 100;
   const MAX_FIELD_Y = 100;
-
   
   function moveControl(evt: React.KeyboardEvent<HTMLDivElement>) {
     const BASE_POS_STEP = 0.25;
@@ -124,7 +124,7 @@ export default function useFieldMacros() {
     moveControl,
     selectControl,
     deleteControl,
-    moveHeading
+    moveHeading,
   }
 
 }

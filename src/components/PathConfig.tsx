@@ -11,6 +11,7 @@ import copy from "../assets/copy.svg";
 import { useSegment } from "../hooks/useSegment";
 import { ReveilLibPathFormat } from "../formats/ReveilLibPathFormat";
 import { convertPath } from "../core/ReveilLibConversion";
+import { usePathVisibility } from "./usePathVisibility";
 
 type MotionListProps = {
     name: string
@@ -122,6 +123,8 @@ function MotionList({name, segmentId}: MotionListProps) {
 
 function PathConfigHeader() {
   const [ segment, setSegment ] = useSegment(); 
+  const [ isEyeOpen, setEyeOpen ] = useState(false);
+  const [ pathVisible, setPathVisibility ] = usePathVisibility();
 
   const copyOnClick = () => {
     const format = new ReveilLibPathFormat();
@@ -129,6 +132,12 @@ function PathConfigHeader() {
     navigator.clipboard.writeText(out);
   }
 
+  const handleEyeOnClick = () => {
+    setEyeOpen((eye) => {
+      setPathVisibility(!eye);
+      return !eye
+    });
+  }
 
   return (
     <div className="w-full flex flex-row items-center justify-between">
@@ -144,6 +153,12 @@ function PathConfigHeader() {
             <img className="w-[25px] h-[25px] pr-[2px]"
               src={copy}
             />
+          </button>
+          <button className="cursor-pointer" 
+              onClick={handleEyeOnClick}>
+              <img className="w-[20px] h-[22px]"
+                  src={isEyeOpen ? eyeClosed : eyeOpen}
+          />
           </button>
           <img className="w-[15px] h-[15px]"
             src={downArrow}
