@@ -1,9 +1,9 @@
 import './App.css'
-import Config from './components/Config'
 import FieldContainer from './components/FieldContainer'
-import PathConfig from './components/PathConfig'
+import PathConfig from './components/PathMenu/PathConfig'
 import PathSimulator from './components/PathSimulator'
 import ControlConfig from './components/ControlConfig'
+import Config from './components/Config/Config'
 
 function App() {
   return (

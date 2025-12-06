@@ -1,5 +1,5 @@
-import checkedBox from "../assets/checked-box.svg"
-import uncheckedBox from "../assets/unchecked-box.svg"
+import checkedBox from "../../assets/checked-box.svg"
+import uncheckedBox from "../../assets/unchecked-box.svg"
 
 type CheckBoxProps = {
     checked: boolean,

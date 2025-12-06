@@ -1,4 +1,4 @@
-import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, normalizeDeg, toPX } from "../core/Util";
+import { FIELD_IMG_DIMENSIONS, FIELD_REAL_DIMENSIONS, normalizeDeg, toPX } from "../../core/Util";
 
 type RobotViewProps = {
     x: number,

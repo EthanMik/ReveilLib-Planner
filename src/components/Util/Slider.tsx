@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { clamp } from "../core/Util";
+import { clamp } from "../../core/Util";
 
 type SliderProps = {
   sliderWidth: number,

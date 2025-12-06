@@ -1,5 +1,5 @@
-import CommandButton from "./Config/CommandButton";
-import FieldButton from "./Config/FieldButton";
+import CommandButton from "./CommandButton";
+import FieldButton from "./FieldButton";
 
 export default function Config() {
     return (

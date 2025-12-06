@@ -3,7 +3,7 @@ import { Control, type Coordinate, type Segment } from "../core/Path";
 import { FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
 import { useSegment } from "../hooks/useSegment";
 import useFieldMacros from "../hooks/useFieldMacros";
-import RobotView from "./RobotView";
+import RobotView from "./Util/RobotView";
 import { usePose } from "../hooks/usePose";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
 import { usePathVisibility } from "./usePathVisibility";

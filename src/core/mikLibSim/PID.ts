@@ -18,33 +18,32 @@ export class PID {
     private timeSpentSettled = 0;
     private timeSpentRunning = 0;
 
-    constructor(kp: number, ki: number, kd: number, starti: number, settleTime: number, settleError: number, timeout: number);
-    constructor(kPID: PIDConstants);
+    constructor(kPID: PIDConstants) {
+        this.kp = kPID.kp ? kPID.kp : 0;
+        this.ki = kPID.ki ? kPID.ki : 0;
+        this.kd = kPID.kd ? kPID.kd : 0;
+        this.starti = kPID.starti ? kPID.starti : 0;
+        
+        this.settleTime = kPID.settleTime ? kPID.settleTime : 0;
+        this.settleError = kPID.settleError ? kPID.settleError : 0;
+        this.timeout = kPID.timeout ? kPID.timeout : 0;
+        
+        this.maxSpeed = kPID.maxSpeed ? kPID.maxSpeed : 0;
+        this.minSpeed = kPID.minSpeed ? kPID.minSpeed : 0;
+    }
 
-    constructor(kpOrPID: number | PIDConstants, ki?: number, kd?: number, starti?: number, settleTime?: number, settleError?: number, timeout?: number) {
-        if (typeof kpOrPID === "number") {
-            this.kp = kpOrPID;
-            this.ki = ki as number;
-            this.kd = kd as number;
-
-            this.starti = starti as number;
-            this.settleTime = settleTime as number;
-            this.settleError = settleError as number;
-            this.timeout = timeout as number;
-        } else {
-            const kPID = kpOrPID;
-            this.kp = kPID.kp;
-            this.ki = kPID.ki;
-            this.kd = kPID.kd;
-
-            this.starti = kPID.starti;
-            this.settleTime = kPID.settleTime;
-            this.settleError = kPID.settleError;
-            this.timeout = kPID.timeout;
-
-            this.maxSpeed = kPID.maxSpeed;
-            this.minSpeed = kPID.minSpeed;
-       }
+    public update(kPID: PIDConstants) {
+        this.kp = kPID.kp ? kPID.kp : 0;
+        this.ki = kPID.ki ? kPID.ki : 0;
+        this.kd = kPID.kd ? kPID.kd : 0;
+        this.starti = kPID.starti ? kPID.starti : 0;
+        
+        this.settleTime = kPID.settleTime ? kPID.settleTime : 0;
+        this.settleError = kPID.settleError ? kPID.settleError : 0;
+        this.timeout = kPID.timeout ? kPID.timeout : 0;
+        
+        this.maxSpeed = kPID.maxSpeed ? kPID.maxSpeed : 0;
+        this.minSpeed = kPID.minSpeed ? kPID.minSpeed : 0;        
     }
 
     public compute(error: number) {

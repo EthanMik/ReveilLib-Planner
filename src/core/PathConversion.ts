@@ -1,5 +1,5 @@
 import type { PathFormat } from "../formats/PathFormat";
-import { kHeadingPID, kOdomDrivePID, kOdomHeadingPID, kturnPID } from "./mikLibSim/Constants";
+import { kHeadingPID, kOdomDrivePID, kOdomHeadingPID, kOdomTurnPID, kturnPID } from "./mikLibSim/Constants";
 import { driveToPoint, turnToPoint } from "./mikLibSim/DriveMotions";
 import { PID } from "./mikLibSim/PID";
 import type { Segment } from "./Path";
@@ -27,6 +27,8 @@ export function convertPathtoSim(path: Segment): ((robot: Robot, dt: number) => 
 
         auton.push(
             (robot: Robot, dt: number): boolean => { 
+                drivePID.update(kOdomDrivePID);
+                headingPID.update(kHeadingPID);
                 return driveToPoint(robot, dt, control.position.x, control.position.y, drivePID, headingPID);
             }
         );
@@ -34,6 +36,7 @@ export function convertPathtoSim(path: Segment): ((robot: Robot, dt: number) => 
         if (control.turnToPos !== null) {
             auton.push(
                 (robot: Robot, dt: number): boolean => { 
+                    turnPID.update(kturnPID);
                     return turnToPoint(robot, dt, control.turnToPos.x, control.turnToPos.y, 0, turnPID);
                 }
             );            

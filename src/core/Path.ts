@@ -1,3 +1,4 @@
+import { kOdomDrivePID, type PIDConstants } from "./mikLibSim/Constants";
 import { makeId } from "./Util";
 
 export interface Coordinate {
@@ -6,9 +7,9 @@ export interface Coordinate {
 }
 
 export interface Pose {
-    x: number,
-    y: number,
-    angle: number
+    x: number | null,
+    y: number | null,
+    angle: number | null
 }
 
 export class Control {
@@ -35,6 +36,99 @@ export class Control {
         this.drivePower = 0;
     }
 }
+
+// export abstract class Segment {
+//     abstract id: string;
+//     abstract selected: boolean;
+//     abstract locked: boolean;
+//     abstract visible: boolean;
+//     abstract pose: Pose;
+//     abstract constants: PIDConstants;
+// }
+
+// export class PointDriveSegment extends Segment {
+//     public id: string;
+//     public selected: boolean;
+//     public locked: boolean;
+//     public visible: boolean;
+//     public pose: Pose = { x: null, y: null, angle: null };
+//     public constants: PIDConstants;
+
+//     constructor (position: Coordinate) {
+//         super();
+//         this.id = makeId(10);
+//         this.selected = false;
+//         this.locked = false;
+//         this.visible = true;
+//         this.pose.x = position.x;
+//         this.pose.y = position.y;
+//         this.constants = kOdomDrivePID;
+//     }
+// }
+
+// export class PoseDriveSegment extends Segment {
+//     public id: string;
+//     public selected: boolean;
+//     public locked: boolean;
+//     public visible: boolean;
+//     public pose: Pose = { x: null, y: null, angle: null };
+//     public constants: PIDConstants;
+
+//     constructor (position: Coordinate) {
+//         super();
+//         this.id = makeId(10);
+//         this.selected = false;
+//         this.locked = false;
+//         this.visible = true;
+//         this.pose.x = position.x;
+//         this.pose.y = position.y;
+//         this.constants = kOdomDrivePID;
+//     }
+// }    
+
+// export class PointTurnSegment extends Segment {
+//     public id: string;
+//     public selected: boolean;
+//     public locked: boolean;
+//     public visible: boolean;
+//     public pose: Pose = { x: null, y: null, angle: null };
+//     public constants: PIDConstants;
+
+//     constructor (position: Coordinate) {
+//         super();
+//         this.id = makeId(10);
+//         this.selected = false;
+//         this.locked = false;
+//         this.visible = true;
+//         this.pose.x = position.x;
+//         this.pose.y = position.y;
+//         this.constants = kOdomDrivePID;
+//     }
+// }
+
+// export class AngleTurnSegment extends Segment {
+//     public id: string;
+//     public selected: boolean;
+//     public locked: boolean;
+//     public visible: boolean;
+//     public pose: Pose = { x: null, y: null, angle: null };
+//     public constants: PIDConstants;
+
+//     constructor (position: Coordinate) {
+//         super();
+//         this.id = makeId(10);
+//         this.selected = false;
+//         this.locked = false;
+//         this.visible = true;
+//         this.pose.x = position.x;
+//         this.pose.y = position.y;
+//         this.constants = kOdomDrivePID;
+//     }    
+// }
+
+// export interface Path {
+//     segments: Segment[];
+// }
 
 export interface Segment {
     controls: Control[];

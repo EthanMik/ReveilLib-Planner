@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Slider from "./Slider";
 import play from "../assets/play.svg";
 import pause from "../assets/pause.svg";
 import { Robot } from "../core/Robot";
@@ -7,9 +6,10 @@ import { precomputePath, type PathSim } from "../core/PathSim";
 import { usePose } from "../hooks/usePose";
 import { clamp } from "../core/Util";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
-import Checkbox from "./Checkbox";
+import Checkbox from "./Util/Checkbox";
 import { useSegment } from "../hooks/useSegment";
 import { convertPathtoSim } from "../core/PathConversion";
+import Slider from "./Util/Slider";
 
 function createRobot(): Robot {
     return new Robot(
