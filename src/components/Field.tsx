@@ -68,20 +68,28 @@ export default function Field({
     const deltaPosition = vector2Subtract(posPx, drag.lastPos);
 
     const next: Path = {
-      segments: 
-        path.segments.map((c) =>
-          selectedIds.includes(c.id) ? 
-            { ...c, 
-              position: 
-                !c.locked ?
-                toInch(vector2Add(
-                toPX({x: c.pose.x, y: c.pose.y}, FIELD_REAL_DIMENSIONS, img), deltaPosition), 
-                FIELD_REAL_DIMENSIONS, img) 
-                : {x: c.pose.x, y: c.pose.y}
-            } 
-          : c
-        ) 
-    } 
+      segments: path.segments.map((c) => {
+        if (!selectedIds.includes(c.id) || c.locked) return c;
+
+        const currentPx = toPX(
+          { x: c.pose.x, y: c.pose.y },
+          FIELD_REAL_DIMENSIONS,
+          img
+        );
+
+        const newPx = vector2Add(currentPx, deltaPosition);
+        const newInch = toInch(newPx, FIELD_REAL_DIMENSIONS, img);
+
+        return {
+          ...c,
+          pose: {
+            ...c.pose,
+            x: newInch.x,
+            y: newInch.y,
+          },
+        };
+      }),
+    };
 
     setDrag((prev) =>
       prev ? {...prev, lastPos: posPx } : prev
