@@ -4,19 +4,19 @@ import eyeClosed from "../../assets/eye-closed.svg";
 import downArrow from "../../assets/down-arrow.svg";
 import plus from "../../assets/plus.svg";
 import copy from "../../assets/copy.svg";
-import { useSegment } from "../../hooks/useSegment";
 import { convertPath } from "../../core/PathConversion";
 import { usePathVisibility } from "../usePathVisibility";
 import { mikLibFormat } from "../../formats/mikLibFormat";
+import { usePath } from "../../hooks/usePath";
 
 export default function PathConfigHeader() {
-  const [ segment, setSegment ] = useSegment(); 
+  const [ path, setPath ] = usePath(); 
   const [ isEyeOpen, setEyeOpen ] = useState(false);
   const [ pathVisible, setPathVisibility ] = usePathVisibility();
 
   const copyOnClick = () => {
     const format = new mikLibFormat();
-    const out = convertPath(segment, format);
+    const out = convertPath(path, format);
     navigator.clipboard.writeText(out);
   }
 

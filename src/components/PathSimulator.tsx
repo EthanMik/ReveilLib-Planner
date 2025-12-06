@@ -7,9 +7,9 @@ import { usePose } from "../hooks/usePose";
 import { clamp } from "../core/Util";
 import { useRobotVisibility } from "../hooks/useRobotVisibility";
 import Checkbox from "./Util/Checkbox";
-import { useSegment } from "../hooks/useSegment";
 import { convertPathtoSim } from "../core/PathConversion";
 import Slider from "./Util/Slider";
+import { usePath } from "../hooks/usePath";
 
 function createRobot(): Robot {
     return new Robot(
@@ -24,7 +24,7 @@ function createRobot(): Robot {
     );
 }
 
-let path: PathSim;
+let computedPath: PathSim;
 
 export default function PathSimulator() {
     const [value, setValue] = useState<number>(0);
@@ -32,12 +32,12 @@ export default function PathSimulator() {
     const [pose, setPose] = usePose()
     const [playing, setPlaying] = useState<boolean>(false);
     const [robotVisible, setRobotVisibility] = useRobotVisibility();
-    const [segment, setSegment] = useSegment();
+    const [ path, setPath ] = usePath();
 
     useEffect(() => {
-        path = precomputePath(createRobot(), convertPathtoSim(segment));
-        if (robotVisible) forceSnapTime(path, time);
-    }, [segment]) 
+        computedPath = precomputePath(createRobot(), convertPathtoSim(path));
+        if (robotVisible) forceSnapTime(computedPath, time);
+    }, [path]) 
 
     useEffect(() => {
         const handleKeyDown = (evt: KeyboardEvent) => {
@@ -98,14 +98,14 @@ export default function PathSimulator() {
     }
 
     useEffect(() => {
-        if (!playing) setPathPercent(path, value);
+        if (!playing) setPathPercent(computedPath, value);
     }, [value])
 
     useEffect(() => {
         const dt = 1 / 60;
 
         if (playing) {
-            setTime(prev => (prev + dt >= path.totalTime ? 0 : prev));
+            setTime(prev => (prev + dt >= computedPath.totalTime ? 0 : prev));
         }
 
         if (!playing) return;
@@ -119,11 +119,11 @@ export default function PathSimulator() {
 
             setTime(prevTime => {
                 const nextTime = prevTime + dtSec;
-                const clamped = Math.min(nextTime, path.totalTime);
+                const clamped = Math.min(nextTime, computedPath.totalTime);
 
-                setPathTime(path, clamped);
+                setPathTime(computedPath, clamped);
 
-                if (clamped >= path.totalTime) {
+                if (clamped >= computedPath.totalTime) {
                     clearInterval(interval);
                     setPlaying(false);
                 }

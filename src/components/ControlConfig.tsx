@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { useSegment } from "../hooks/useSegment";
 import flipHorizontal from "../assets/flip-horizontal.svg";
 import flipVertical from "../assets/flip-vertical.svg";
 import { normalizeDeg } from "../core/Util";
+import { usePath } from "../hooks/usePath";
 
 type ControlInputProps = {
     getValue?: () => number | undefined;
@@ -15,7 +15,7 @@ function ControlInput({
     updateValue,
     clampTo,
 }: ControlInputProps) {
-    const [ segment, setSegment ] = useSegment(); 
+    const [ path, setPath ] = usePath();
 
     const [ value, SetValue ] = useState<number>(0);
     const [ edit, setEdit ] = useState<string | null>(null);
@@ -32,7 +32,7 @@ function ControlInput({
     useEffect(() => {
         resetValue();
 
-    }, [segment.controls])
+    }, [path.segments])
 
     const executeValue = () => {
         if (edit === null) return;
@@ -40,7 +40,7 @@ function ControlInput({
         const num: number = parseFloat(edit);
         if (!Number.isFinite(num)) return;
 
-        const selectedControls = segment.controls.filter(c => c.selected);
+        const selectedControls = path.segments.filter(c => c.selected);
         if (selectedControls.length > 1) {
             resetValue();
             return;
@@ -100,25 +100,25 @@ function MirrorControl({
     src,
     mirrorDirection
 }: MirrorControlProps) {
-    const [ segment, setSegment ] = useSegment(); 
+    const [ path, setPath ] = usePath();
 
     const mirrorX = () => {
-        setSegment(prev => ({
+        setPath(prev => ({
             ...prev,
-            controls: prev.controls.map(control =>
+            controls: prev.segments.map(control =>
                 control.selected
-                ? { ...control, heading: normalizeDeg(360 - control.heading), position: { ...control.position, x: -control.position.x, }, }
+                ? { ...control, pose: { angle: normalizeDeg(360 - control.pose.angle), x: -control.pose.x }, }
                 : control
             ),
         }));
     }
 
     const mirrorY = () => {
-        setSegment(prev => ({
+        setPath(prev => ({
             ...prev,
-            controls: prev.controls.map(control =>
+            controls: prev.segments.map(control =>
                 control.selected
-                ? { ...control, heading: normalizeDeg(180 - control.heading), position: { ...control.position, y: -control.position.y, }, }
+                ? { ...control, pose: { angle: normalizeDeg(180 - control.pose.angle), y: -control.pose.y }, }
                 : control
             ),
         }));
@@ -138,7 +138,7 @@ function MirrorControl({
             rounded-lg bg-transparent hover:bg-medgray_hover border-none outline-none fill-white"
             onClick={handleOnClick}>
             <img 
-                className="fill-white w-[30px] h-[30px]"
+                className="fill-white w-[30px] h-[30px]" 
                 src={src}   
             />
         </button>
@@ -146,55 +146,55 @@ function MirrorControl({
 }
 
 export default function ControlConfig() {
-    const [ segment, setSegment ] = useSegment(); 
+    const [ path, setPath ] = usePath(); 
 
     const clampToField = (value: number) => {
         return Math.min(Math.max(value, -100), 100);
     }
 
     const getXValue = () => {
-        const x: number | undefined = segment.controls.find(c => c.selected)?.position.x;
+        const x: number | undefined = path.segments.find(c => c.selected)?.pose.x;
         return x
     }
 
     const getYValue = () => {
-        const y: number | undefined = segment.controls.find(c => c.selected)?.position.y;
+        const y: number | undefined = path.segments.find(c => c.selected)?.pose.y;
         return y
     }
 
     const getHeadingValue = () => {
-        const heading: number | undefined = segment.controls.find(c => c.selected)?.heading;
+        const heading: number | undefined = path.segments.find(c => c.selected)?.pose.angle;
         return heading;
     }
 
     const updateXValue = (newX: number) => {
-        setSegment(prev => ({
+        setPath(prev => ({
                     ...prev,
-                    controls: prev.controls.map(control =>
+                    segments: prev.segments.map(control =>
                         control.selected
-                        ? { ...control, position: { ...control.position, x: newX, }, }
+                        ? { ...control, pose: { ...control.pose, x: newX, }, }
                         : control
                     ),
                 }));
     }
 
     const updateYValue = (newY: number) => {
-        setSegment(prev => ({
+        setPath(prev => ({
                     ...prev,
-                    controls: prev.controls.map(control =>
+                    segments: prev.segments.map(control =>
                         control.selected
-                        ? { ...control, position: { ...control.position, y: newY, }, }
+                        ? { ...control, pose: { ...control.pose, y: newY, }, }
                         : control
                     ),
                 }));
     }
 
     const updateHeadingValue = (newHeading: number) => {
-        setSegment(prev => ({
+        setPath(prev => ({
                     ...prev,
-                    controls: prev.controls.map(control =>
+                    segments: prev.segments.map(control =>
                         control.selected
-                        ? { ...control, heading: newHeading, }
+                        ? { ...control, pose: { ...control.pose, angle: newHeading, }, }
                         : control
                     ),
                 }));

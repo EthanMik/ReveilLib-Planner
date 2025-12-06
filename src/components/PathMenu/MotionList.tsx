@@ -5,8 +5,8 @@ import threeDots from "../../assets/three-dots.svg";
 import lockClose from "../../assets/lock-close.svg";
 import lockOpen from "../../assets/lock-open.svg";
 import downArrow from "../../assets/down-arrow.svg";
-import { useSegment } from "../../hooks/useSegment";
 import Slider from "../Util/Slider";
+import { usePath } from "../../hooks/usePath";
 
 type MotionListProps = {
     name: string
@@ -15,41 +15,41 @@ type MotionListProps = {
 
 export default function MotionList({name, segmentId}: MotionListProps) {
   const [value, setValue] = useState<number>(0);
-  const [ segment, setSegment ] = useSegment(); 
-  const selected = segment.controls.find((c) => c.id === segmentId)?.selected;
+  const [ path, setPath ] = usePath(); 
+  const selected = path.segments.find((c) => c.id === segmentId)?.selected;
   const [ isEyeOpen, setEyeOpen ] = useState(false);
   const [ isLocked, setLocked ] = useState(false);
 
-    useEffect(() => {
-      if (name === "Drive") {
-        setSegment(prev => ({
-            ...prev,
-            controls: prev.controls.map(control =>
-                control.id === segmentId
-                ? { ...control, drivePower: value }
-                : control
-            ),
-        }));
-      }
+    // useEffect(() => {
+    //   if (name === "Drive") {
+    //     setPath(prev => ({
+    //         ...prev,
+    //         controls: prev.segments.map(control =>
+    //             control.id === segmentId
+    //             ? { ...control, drivePower: value }
+    //             : control
+    //         ),
+    //     }));
+    //   }
 
-      if (name === "Turn") {
-        setSegment(prev => ({
-            ...prev,
-            controls: prev.controls.map(control =>
-                control.id === segmentId
-                ? { ...control, turnPower: value }
-                : control
-            ),
-        }));
-      }
+    //   if (name === "Turn") {
+    //     setSegment(prev => ({
+    //         ...prev,
+    //         controls: prev.controls.map(control =>
+    //             control.id === segmentId
+    //             ? { ...control, turnPower: value }
+    //             : control
+    //         ),
+    //     }));
+    //   }
 
-    }, [value])
+    // }, [value])
 
     const handleEyeOnClick = () => {
       setEyeOpen((visible) => {
-        setSegment(prev => ({
+        setPath(prev => ({
             ...prev,
-            controls: prev.controls.map(control =>
+            segments: prev.segments.map(control =>
                 control.id === segmentId
                 ? { ...control, visible: !visible }
                 : control
@@ -61,9 +61,9 @@ export default function MotionList({name, segmentId}: MotionListProps) {
 
     const handleLockOnClick = () => {
       setLocked((locked) => {
-        setSegment(prev => ({
+        setPath(prev => ({
             ...prev,
-            controls: prev.controls.map(control =>
+            segments: prev.segments.map(control =>
                 control.id === segmentId
                 ? { ...control, locked: !locked }
                 : control

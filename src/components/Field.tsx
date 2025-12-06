@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Control, type Coordinate, type Segment } from "../core/Path";
+import { PointDriveSegment, type Coordinate, type Path } from "../core/Path";
 import { FIELD_REAL_DIMENSIONS, toInch, toPX, toRad, vector2Add, vector2Subtract, type Rectangle } from "../core/Util";
-import { useSegment } from "../hooks/useSegment";
+import { usePath } from "../hooks/usePath";
 import useFieldMacros from "../hooks/useFieldMacros";
 import RobotView from "./Util/RobotView";
 import { usePose } from "../hooks/usePose";
@@ -20,7 +20,7 @@ export default function Field({
   radius,
 }: FieldProps) {
 
-  const [segment, setSegment] = useSegment();
+  const [ path, setPath ] = usePath();
   const svgRef = useRef<SVGSVGElement | null>(null); 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [pose, setPose] = usePose();
@@ -36,8 +36,8 @@ export default function Field({
   } = useFieldMacros();
 
   useEffect(() => {
-    localStorage.setItem("path", JSON.stringify(segment));
-  }, [segment])
+    localStorage.setItem("path", JSON.stringify(path));
+  }, [path])
 
   useEffect(() => {
     const handleKeyDown = (evt: KeyboardEvent) => {
@@ -67,17 +67,17 @@ export default function Field({
     const posPx: Coordinate = { x: evt.clientX - rect.left, y: (evt.clientY - rect.top) }
     const deltaPosition = vector2Subtract(posPx, drag.lastPos);
 
-    const next: Segment = {
-      controls: 
-        segment.controls.map((c) =>
+    const next: Path = {
+      segments: 
+        path.segments.map((c) =>
           selectedIds.includes(c.id) ? 
             { ...c, 
               position: 
                 !c.locked ?
                 toInch(vector2Add(
-                toPX(c.position, FIELD_REAL_DIMENSIONS, img), deltaPosition), 
+                toPX({x: c.pose.x, y: c.pose.y}, FIELD_REAL_DIMENSIONS, img), deltaPosition), 
                 FIELD_REAL_DIMENSIONS, img) 
-                : c.position
+                : {x: c.pose.x, y: c.pose.y}
             } 
           : c
         ) 
@@ -87,15 +87,15 @@ export default function Field({
       prev ? {...prev, lastPos: posPx } : prev
     );
 
-    setSegment(next);
+    setPath(next);
   }
 
   const endDrag = () => setDrag({dragging: false, lastPos: {x: 0, y: 0}});
   const endSelecton = () => {
     setSelectedIds([]);
-    setSegment((prevSegment) => ({
+    setPath((prevSegment) => ({
     ...prevSegment,
-    controls: prevSegment.controls.map((c) => ({
+    segments: prevSegment.segments.map((c) => ({
       ...c,
       selected: false,
     })),
@@ -108,15 +108,15 @@ export default function Field({
   
       if (!shifting && prev.length <= 1) {
         nextSelectedIds = [controlId];
-      } else if (shifting && segment.controls.find((c) => c.id === controlId && c.selected)) {
+      } else if (shifting && path.segments.find((c) => c.id === controlId && c.selected)) {
         nextSelectedIds = prev.filter((c) => c !== controlId)
       } else {
         nextSelectedIds = [...prev, controlId];
       }
   
-      setSegment((prevSegment) => ({
+      setPath((prevSegment) => ({
         ...prevSegment,
-        controls: prevSegment.controls.map((c) => ({
+        segments: prevSegment.segments.map((c) => ({
           ...c,
           selected: !c.locked && nextSelectedIds.includes(c.id),
         })),
@@ -157,13 +157,14 @@ export default function Field({
       return
     }
 
-    const control = new Control(posIn, 0);
+    // const control = new Control(posIn, 0);
+    const control = new PointDriveSegment(posIn);
 
-    setSegment(prev => {
-      let selectedIndex = prev.controls.findIndex(c => c.selected);
-      selectedIndex = selectedIndex === -1 ? selectedIndex = prev.controls.length : selectedIndex + 1;
+    setPath(prev => {
+      let selectedIndex = prev.segments.findIndex(c => c.selected);
+      selectedIndex = selectedIndex === -1 ? selectedIndex = prev.segments.length : selectedIndex + 1;
 
-      const oldControls = prev.controls;
+      const oldControls = prev.segments;
 
       const newControl = { ...control, selected: !control.locked };
 
@@ -179,23 +180,23 @@ export default function Field({
       const controls = inserted.map(c =>
         c === newControl ? c : { ...c, selected: false }
       );
-
+      console.log(path)
       return {
         ...prev,
-        controls,
+        segments: controls,
       };
     });
 
     setSelectedIds([control.id])
   };
 
-  const controls = segment.controls;
+  const controls = path.segments;
 
   const moveToPoints =
     controls.length > 1
       ? controls
           .map((m) => {
-            const p = toPX(m.position, FIELD_REAL_DIMENSIONS, img);
+            const p = toPX({x: m.pose.x, y: m.pose.y}, FIELD_REAL_DIMENSIONS, img);
             return `${p.x},${p.y}`;
           })
           .join(" ")
@@ -208,9 +209,9 @@ export default function Field({
             if (idx < 1) return
 
             const lead = .4;
-            const pStart = toPX(controls[idx - 1].position, FIELD_REAL_DIMENSIONS, img);
-            const pEnd = toPX(m.position, FIELD_REAL_DIMENSIONS, img);
-            const ΘEnd = m.heading;
+            const pStart = toPX({x: controls[idx - 1].pose.x, y: controls[idx - 1].pose.y}, FIELD_REAL_DIMENSIONS, img);
+            const pEnd = toPX({x: m.pose.x, y: m.pose.y}, FIELD_REAL_DIMENSIONS, img);
+            const ΘEnd = m.pose.angle;
             const h = Math.sqrt(((pStart.x - pEnd.x) * (pStart.x - pEnd.x)) 
                               + ((pStart.y - pEnd.y) * (pStart.y - pEnd.y)));
 
@@ -224,7 +225,6 @@ export default function Field({
               boomerangPts = [...boomerangPts, `${x},${y}`]
             }
 
-            // return `${p.x},${p.y}`;
             return boomerangPts.join(" ")
           })
           .join(" ")
@@ -254,7 +254,7 @@ export default function Field({
           height={img.h}
         />
 
-        {!pathVisible && segment.controls.length >= 2 && (
+        {!pathVisible && path.segments.length >= 2 && (
           <polyline
             points={moveToPoints}
             fill="none"
@@ -274,57 +274,60 @@ export default function Field({
           />
         }
         
-        {!pathVisible && segment.controls.map((control, idx) => (
+        {!pathVisible && path.segments.map((control, idx) => (
           <g 
             key={control.id}
             onPointerDown={(e) => handleControlPointerDown(e, control.id)}
           >
-            {!control.visible ?
+            {control.visible &&
             <>
               <circle
-              className="stroke-[#1560BD]"
-              style={control.locked ? {cursor : "not-allowed"} : {cursor : "grab"}}
-            
-              id={control.id}
-              cx={toPX(control.position, FIELD_REAL_DIMENSIONS, img).x}
-              cy={toPX(control.position, FIELD_REAL_DIMENSIONS, img).y}
-              r={radius}
+                className="stroke-[#1560BD]"
+                style={control.locked ? {cursor : "not-allowed"} : {cursor : "grab"}}
+              
+                id={control.id}
+                cx={toPX({x: control.pose.x, y: control.pose.y}, FIELD_REAL_DIMENSIONS, img).x}
+                cy={toPX({x: control.pose.x, y: control.pose.y}, FIELD_REAL_DIMENSIONS, img).y}
+                r={radius}
 
-              fill={
-                control.selected
-                  ? "rgba(180, 50, 11, .75)"
-                  : "rgba(160, 32, 7, .5)"
-              }
-              
-              strokeWidth={idx === segment.controls.length - 1 ? 2: 0}
-              />
-              <line
-              x1={toPX(control.position, FIELD_REAL_DIMENSIONS, img).x}
-              y1={toPX(control.position, FIELD_REAL_DIMENSIONS, img).y}
-              
-              x2={
-                toPX(
-                { 
-                  x: control.position.x + (radius * FIELD_REAL_DIMENSIONS.w / img.w) * Math.sin(toRad(control.heading)), 
-                  y: control.position.y + (radius * FIELD_REAL_DIMENSIONS.h / img.h) * Math.cos(toRad(control.heading)) 
+                fill={
+                  control.selected
+                    ? "rgba(180, 50, 11, .75)"
+                    : "rgba(160, 32, 7, .5)"
                 }
-                , FIELD_REAL_DIMENSIONS, 
-                img).x
-              }
-              y2={
-                toPX(
-                { 
-                  x: control.position.x + (radius * FIELD_REAL_DIMENSIONS.w / img.w) * Math.sin(toRad(control.heading)), 
-                  y: control.position.y + (radius * FIELD_REAL_DIMENSIONS.h / img.h) * Math.cos(toRad(control.heading)) 
-                }
-                , FIELD_REAL_DIMENSIONS, 
-                img).y       
-              }
-              stroke="black"
-              strokeWidth={2}
+                
+                strokeWidth={idx === path.segments.length - 1 ? 2: 0}
               />
+
+              {control.pose.angle !== null && <>
+                <line
+                  x1={toPX({x: control.pose.x, y: control.pose.y}, FIELD_REAL_DIMENSIONS, img).x}
+                  y1={toPX({x: control.pose.x, y: control.pose.y}, FIELD_REAL_DIMENSIONS, img).y}
+                  
+                  x2={
+                    toPX(
+                    { 
+                      x: control.pose.x + (radius * FIELD_REAL_DIMENSIONS.w / img.w) * Math.sin(toRad(control.pose.angle)), 
+                      y: control.pose.x + (radius * FIELD_REAL_DIMENSIONS.h / img.h) * Math.cos(toRad(control.pose.angle)) 
+                    }
+                    , FIELD_REAL_DIMENSIONS, 
+                    img).x
+                  }
+                  y2={
+                    toPX(
+                    { 
+                      x: control.pose.x + (radius * FIELD_REAL_DIMENSIONS.w / img.w) * Math.sin(toRad(control.pose.angle)), 
+                      y: control.pose.y + (radius * FIELD_REAL_DIMENSIONS.h / img.h) * Math.cos(toRad(control.pose.angle)) 
+                    }
+                    , FIELD_REAL_DIMENSIONS, 
+                    img).y       
+                  }
+                  stroke="black"
+                  strokeWidth={2}
+                  />
+              </>
+              }
             </>
-              : <></>
             }
         </g>
         

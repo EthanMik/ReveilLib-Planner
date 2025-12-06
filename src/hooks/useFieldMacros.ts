@@ -1,10 +1,10 @@
 import type React from "react";
-import { useSegment } from "./useSegment";
 import { calculateHeading, clamp, normalizeDeg } from "../core/Util";
-import type { Segment } from "../core/Path";
+import type { Path, Segment } from "../core/Path";
+import { usePath } from "./usePath";
 
 export default function useFieldMacros() {
-  const [ segment, setSegment ] = useSegment(); 
+  const [ path, setPath ] = usePath();
 
   
   const MIN_FIELD_X = -100;
@@ -30,16 +30,16 @@ export default function useFieldMacros() {
   
     evt.preventDefault();
   
-    setSegment(prev => ({
+    setPath(prev => ({
       ...prev,
-      controls: prev.controls.map(control =>
+      segments: prev.segments.map(control =>
         control.selected
           ? {
               ...control,
-              position: {
-                ...control.position,
-                x: clamp(control.position.x + xScale, MIN_FIELD_X, MAX_FIELD_X),
-                y: clamp(control.position.y + yScale, MIN_FIELD_Y, MAX_FIELD_Y),
+              pose: {
+                ...control.pose,
+                x: clamp(control.pose.x + xScale, MIN_FIELD_X, MAX_FIELD_X),
+                y: clamp(control.pose.y + yScale, MIN_FIELD_Y, MAX_FIELD_Y),
               },
             }
           : control
@@ -75,14 +75,14 @@ export default function useFieldMacros() {
       thetaScale = -largeHeadingStep;
     }
     if (evt.key === " ") {
-      setSegment(prev => ({
-        ...prev, controls:
-          prev.controls.map((c, idx, arr) => 
+      setPath(prev => ({
+        ...prev, segments:
+          prev.segments.map((c, idx, arr) => 
             c.selected && idx < arr.length - 1 ?
             {
               ...c,
-              turnToPos: arr[idx + 1].position,
-              heading: calculateHeading(arr[idx].position, arr[idx + 1].position)
+              turnToPos: { x: arr[idx + 1].pose.x, y: arr[idx + 1].pose.y },
+              heading: calculateHeading({ x: arr[idx].pose.x, y: arr[idx].pose.y }, { x: arr[idx + 1].pose.x, y: arr[idx + 1].pose.y })
             } : 
             c
           )
@@ -91,13 +91,13 @@ export default function useFieldMacros() {
 
     if (thetaScale === 0) return;
 
-    setSegment(prev => ({
+    setPath(prev => ({
       ...prev,
-      controls: prev.controls.map(control =>
+      controls: prev.segments.map(control =>
         control.selected
           ? {
               ...control,
-              heading: normalizeDeg(control.heading + thetaScale)
+              heading: normalizeDeg(control.pose.angle + thetaScale)
             }
           : control
       ),
@@ -110,12 +110,12 @@ export default function useFieldMacros() {
 
   function deleteControl(evt: React.KeyboardEvent<HTMLDivElement>) {
     if (evt.key === "Backspace" || evt.key === "Delete") {
-        const next: Segment = {
-          controls:
-            segment.controls.filter((c) => !c.selected)
+        const next: Path = {
+          segments:
+            path.segments.filter((c) => !c.selected)
         }
 
-      setSegment(next);
+      setPath(next);
     }
   }
   
